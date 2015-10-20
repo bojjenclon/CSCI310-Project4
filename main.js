@@ -1,6 +1,6 @@
 global.Class = require('js-class');
 global.THREE = require('three');
-global.THREE.PointerLockControls = require('three-pointerlock');
+//global.THREE.PointerLockControls = require('three-pointerlock');
 global.Physijs = require('physijs-browserify')(THREE);
 global.Stats = require('stats.js');
 var EntityManager = require('tiny-ecs').EntityManager;
@@ -9,13 +9,15 @@ require('./RequestAnimationFrame.js');
 
 require('./js/Game.js');
 require('./js/ResourceManager.js');
+require('./js/PointerLockControls.js')
 
 Physijs.scripts.worker = '/libs/physi-worker.js';
 Physijs.scripts.ammo = '/libs/ammo.js';
 
 // purpose: function as a basic FPS game using an ECS (entity-component system) pattern
 //
-// requires: three.js, RequestAnimationFrame.js, three-fly-controls.js, stats.js, js-class.js, dat-gui.js
+// requires: RequestAnimationFrame.js, three.js, three-pointerlockcontrols.js, stats.js, js-class.js, physijs, tiny-ecs
+//           Game.js, ResourceManager.js
 //
 // author: Cornell Daly
 //

@@ -8,5 +8,4 @@ Node Requires:
 * physijs-browserify
 * stats.js
 * three
-* three-pointerlock
 * tiny-ecs

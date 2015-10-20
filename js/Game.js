@@ -53,7 +53,9 @@ Game = Class({
     this.scene.add(this.camera);
 
     /* Camera Controller */
-    this.controls = new THREE.PointerLockControls(this.camera);
+    this.controls = new PointerLockControls({
+      camera: this.camera
+    });
     this.scene.add(this.controls.getObject());
 
     var m = new Physijs.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshBasicMaterial({
