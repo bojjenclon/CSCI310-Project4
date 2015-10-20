@@ -24,6 +24,10 @@ PointerLockControls = Class({
 
     this.enabled = false;
 
+    this.mass = options.mass || 100.0;
+    this.moveSpeed = options.moveSpeed || new THREE.Vector3(400.0, 350.0, 400.0);
+    this.minimumY = options.minimumY || 10;
+
     document.addEventListener('mousemove', this.onMouseMove.bind(this), false);
     document.addEventListener('keydown', this.onKeyDown.bind(this), false);
     document.addEventListener('keyup', this.onKeyUp.bind(this), false);
@@ -67,7 +71,7 @@ PointerLockControls = Class({
 
       case 32: // space
         if (this.canJump === true) {
-          this.velocity.y += 350;
+          this.velocity.y += this.moveSpeed.y;
         }
 
         this.canJump = false;
@@ -129,42 +133,44 @@ PointerLockControls = Class({
     }.bind(this);
   },
 
-  update: function() {
-
+  update: function(dt) {
     if (this.enabled === false) {
       return;
     }
 
-    var time = performance.now();
-    var delta = (time - this.prevTime) / 1000;
+    this.velocity.x -= this.velocity.x * 10.0 * dt;
+    this.velocity.z -= this.velocity.z * 10.0 * dt;
 
-    this.velocity.x -= this.velocity.x * 10.0 * delta;
-    this.velocity.z -= this.velocity.z * 10.0 * delta;
+    this.velocity.y -= 9.8 * this.mass * dt;
 
-    this.velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+    if (this.moveForward) {
+      this.velocity.z -= this.moveSpeed.z * dt;
+    }
+    if (this.moveBackward) {
+      this.velocity.z += this.moveSpeed.z * dt;
+    }
 
-    if (this.moveForward) this.velocity.z -= 400.0 * delta;
-    if (this.moveBackward) this.velocity.z += 400.0 * delta;
-
-    if (this.moveLeft) this.velocity.x -= 400.0 * delta;
-    if (this.moveRight) this.velocity.x += 400.0 * delta;
+    if (this.moveLeft) {
+      this.velocity.x -= this.moveSpeed.x * dt;
+    }
+    if (this.moveRight) {
+      this.velocity.x += this.moveSpeed.x * dt;
+    }
 
     if (this.isOnObject === true) {
       this.velocity.y = Math.max(0, this.velocity.y);
     }
 
-    this.yawObject.translateX(this.velocity.x * delta);
-    this.yawObject.translateY(this.velocity.y * delta);
-    this.yawObject.translateZ(this.velocity.z * delta);
+    this.yawObject.translateX(this.velocity.x * dt);
+    this.yawObject.translateY(this.velocity.y * dt);
+    this.yawObject.translateZ(this.velocity.z * dt);
 
-    if (this.yawObject.position.y < 10) {
+    if (this.yawObject.position.y < this.minimumY) {
       this.velocity.y = 0;
-      this.yawObject.position.y = 10;
+      this.yawObject.position.y = this.minimumY;
 
       this.canJump = true;
     }
-
-    this.prevTime = time;
   }
 }, {
   statics: {

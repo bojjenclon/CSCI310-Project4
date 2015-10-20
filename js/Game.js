@@ -7,7 +7,7 @@ Game = Class({
 
     this.stats = null;
 
-    this.clock = null;
+    this.prevTime = performance.now();
 
     this.renderer = null;
     this.scene = null;
@@ -54,7 +54,8 @@ Game = Class({
 
     /* Camera Controller */
     this.controls = new PointerLockControls({
-      camera: this.camera
+      camera: this.camera,
+      minimumY: 5
     });
     this.scene.add(this.controls.getObject());
 
@@ -85,9 +86,10 @@ Game = Class({
   },
 
   update: function() {
-    if (!this.paused) {
-      var dt = this.clock.getDelta();
+    var time = performance.now();
+    var dt = (time - this.prevTime) / 1000;
 
+    if (!this.paused) {
       if (dt > 0.5) {
         dt = 0.5;
       }
@@ -96,12 +98,11 @@ Game = Class({
 
       this.scene.simulate();
     }
-    else {
-      this.clock.getDelta();
-    }
 
     this.renderer.render(this.scene, this.camera);
     this.stats.update();
+
+    this.prevTime = time;
 
     requestAnimationFrame(this.update.bind(this));
   },
