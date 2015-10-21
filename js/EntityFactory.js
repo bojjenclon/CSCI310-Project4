@@ -12,6 +12,32 @@ EntityFactory = Class({
     player.addTag("player");
 
     player.addComponent(C.Position);
+    player.addComponent(C.Velocity);
+    player.addComponent(C.Drawable);
+    player.addComponent(C.CameraFollow);
+
+    player.drawable.scene = options.scene;
+    player.drawable.mesh = new Physijs.BoxMesh(
+      new THREE.BoxGeometry(2, 5, 2),
+      Physijs.createMaterial(new THREE.MeshBasicMaterial({
+        color: 0xffff00
+      }), 0.9, 0.1));
+    player.drawable.mesh.position.copy(options.position);
+    //player.drawable.mesh.rotation.copy(options.rotation);
+
+    player.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.player;
+    player.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy;
+
+    player.drawable.scene.add(player.drawable.mesh);
+
+    player.drawable.mesh.setDamping(0.99, 0);
+
+    player.position.x = options.position.x;
+    player.position.y = options.position.y;
+    player.position.z = options.position.z;
+
+    player.cameraFollow.controls = options.controls;
+    player.cameraFollow.object = options.object;
 
     return player;
   },
@@ -31,15 +57,18 @@ EntityFactory = Class({
       Physijs.createMaterial(new THREE.MeshBasicMaterial({
         color: 0x00ff00
       }), 0.7, 0.9));
+
+    bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.bullet;
+    bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy;
+
     bullet.drawable.mesh.position.copy(options.position);
     bullet.drawable.mesh.rotation.copy(options.rotation);
     bullet.drawable.scene.add(bullet.drawable.mesh);
 
-    bullet.drawable.mesh.setDamping(0.9, 0);
+    bullet.drawable.mesh.setDamping(0.1, 0);
 
-    bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-
-    });
+    /*bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+    });*/
 
     if (options.position) {
       bullet.position.x = options.position.x;
@@ -49,8 +78,9 @@ EntityFactory = Class({
 
     var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
     vel.multiply(options.direction);
-
+    //var vel = new THREE.Vector3(0, 0, -options.velocity).applyMatrix4(options.rotationMatrix);
     bullet.drawable.mesh.applyCentralImpulse(vel);
+    //console.log(vel, options.direction, options.position);
 
     bullet.expirable.maxAge = 5;
 
@@ -63,6 +93,13 @@ EntityFactory = Class({
         EntityFactory._instance = new EntityFactory();
       }
       return EntityFactory._instance;
+    },
+
+    COLLISION_TYPES: {
+      enemy: 0x1,
+      player: 0x2,
+      bullet: 0x3,
+      obstacle: 0x4
     }
   }
 });

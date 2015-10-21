@@ -9,3 +9,7 @@ Node Requires:
 * stats.js
 * three
 * tiny-ecs
+
+Physijs modified to accept collision filtering. Idea/code taken from:  
+* https://github.com/chandlerprall/Physijs/issues/107
+* http://www.bulletphysics.org/mediawiki-1.5.8/index.php/Collision_Filtering

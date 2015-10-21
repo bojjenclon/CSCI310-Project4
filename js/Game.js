@@ -19,6 +19,7 @@ Game = Class({
     this.controls = null;
 
     this.systems = [];
+    this.postPhysicsSystems = [];
   },
 
   start: function(runImmediately) {
@@ -65,20 +66,60 @@ Game = Class({
 
     this.clock = new THREE.Clock();
 
+    /*var geometry = new THREE.TubeGeometry(
+      new THREE.LineCurve(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -10)), //path
+      20, //segments
+      2, //radius
+      8, //radiusSegments
+      false //closed
+    );
+
+    var t = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+      color: 0x00ff00,
+      side: THREE.DoubleSide
+    }));
+
+    t.position.set(1, 1, -2);
+
+    this.controls.getObject().add(t);*/
+
+    var ground = new Physijs.BoxMesh(
+      new THREE.BoxGeometry(500, 1, 500),
+      new THREE.MeshBasicMaterial({
+        color: 0xdcdcdc
+      }), 0);
+    ground._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
+    ground._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.bullet;
+    this.scene.add(ground);
+
     /* Create Entities */
+
+    this.player = EntityFactory.instance.makePlayer({
+      scene: this.scene,
+      position: new THREE.Vector3(0, 5, 0),
+      controls: this.controls,
+      object: this.controls.getObject()
+    });
 
     var m = new Physijs.BoxMesh(
       new THREE.BoxGeometry(10, 10, 10),
       Physijs.createMaterial(new THREE.MeshBasicMaterial({
         color: 0x0000ff
       }), 0.5, 0.6), 0);
-    m.position.set(0, -10, -200);
+    m._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
+    m._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.bullet;
+    m.position.set(0, 6, -200);
     this.scene.add(m);
 
     /* Setup Systems */
 
+    this.systems.push(new CameraRotationSystem(EntityFactory.instance.entities));
+    this.systems.push(new PlayerInputSystem(EntityFactory.instance.entities));
     this.systems.push(new MovementSystem(EntityFactory.instance.entities));
     this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
+    this.systems.push(new CameraFollowSystem(EntityFactory.instance.entities, this.renderer.domElement));
+
+    this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
 
     // hide loading indicator and show instructions
     this.loadingContainer.style.visibility = "hidden";
@@ -110,13 +151,17 @@ Game = Class({
         dt = 0.5;
       }
 
-      this.controls.update(dt);
+      //this.controls.update(dt);
 
       this.systems.forEach(function(system) {
         system.update(dt);
       });
 
       this.scene.simulate();
+
+      this.postPhysicsSystems.forEach(function(system) {
+        system.update(dt);
+      });
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -150,7 +195,8 @@ Game = Class({
         position: this.controls.getObject().position.clone(),
         rotation: this.controls.getObject().rotation.clone(),
         direction: direction,
-        velocity: 100
+        rotationMatrix: new THREE.Matrix4().extractRotation(this.controls.getObject().matrix),
+        velocity: 5
       });
     }
   },
@@ -160,16 +206,31 @@ Game = Class({
       return;
     }
 
-    var direction = new THREE.Vector3();
-    this.controls.getDirection(direction);
+    if (e.button === 0) {
+      var direction = new THREE.Vector3();
+      this.controls.getDirection(direction);
 
-    EntityFactory.instance.makeBullet({
-      scene: this.scene,
-      position: this.controls.getObject().position.clone(),
-      rotation: this.controls.getObject().rotation.clone(),
-      direction: direction,
-      velocity: 15
-    });
+      EntityFactory.instance.makeBullet({
+        scene: this.scene,
+        position: this.controls.getObject().position.clone(),
+        rotation: this.controls.getObject().rotation.clone(),
+        direction: direction,
+        rotationMatrix: new THREE.Matrix4().extractRotation(this.controls.getObject().matrix),
+        velocity: 5
+      });
+    }
+    else if (e.button === 2) {
+      var direction = new THREE.Vector3();
+      this.controls.getDirection(direction);
+
+      EntityFactory.instance.makeBullet({
+        scene: this.scene,
+        position: this.controls.getObject().position.clone(),
+        rotation: this.controls.getObject().rotation.clone(),
+        direction: direction,
+        velocity: 1
+      });
+    }
   },
 
   initPointerLock: function() {
@@ -271,7 +332,8 @@ Game = Class({
     KEY_CODES: {
       c: 67,
       space: 32,
-      e: 69
+      e: 69,
+      w: 87
     }
   }
 });

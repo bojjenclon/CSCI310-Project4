@@ -1,5 +1,6 @@
 global.Class = require('js-class');
 global.THREE = require('three');
+global.THREEx = require('./js/THREEx.KeyboardState.js');
 global.Physijs = require('physijs-browserify')(THREE);
 global.Stats = require('stats.js');
 
