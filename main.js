@@ -1,15 +1,15 @@
 global.Class = require('js-class');
 global.THREE = require('three');
-//global.THREE.PointerLockControls = require('three-pointerlock');
 global.Physijs = require('physijs-browserify')(THREE);
 global.Stats = require('stats.js');
-var EntityManager = require('tiny-ecs').EntityManager;
 
 require('./RequestAnimationFrame.js');
 
 require('./js/Game.js');
 require('./js/ResourceManager.js');
-require('./js/PointerLockControls.js')
+require('./js/PointerLockControls.js');
+require('./js/EntityFactory.js');
+require('./js/Systems.js');
 
 Physijs.scripts.worker = '/libs/physi-worker.js';
 Physijs.scripts.ammo = '/libs/ammo.js';

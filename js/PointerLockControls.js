@@ -130,8 +130,8 @@ PointerLockControls = Class({
       v.copy(direction).applyEuler(rotation);
 
       return v;
-    }.bind(this);
-  },
+    };
+  }(),
 
   update: function(dt) {
     if (this.enabled === false) {

@@ -17,6 +17,8 @@ Game = Class({
 
     this.controlsEnabled = false;
     this.controls = null;
+
+    this.systems = [];
   },
 
   start: function(runImmediately) {
@@ -24,9 +26,10 @@ Game = Class({
       runImmediately = true;
     }
 
-    window.addEventListener('resize', this.onResize);
-    window.addEventListener('keyup', this.onKeyUp);
-    window.onkeydown = this.onKeyDown; // prevent spacebar from scrolling the page
+    window.addEventListener('resize', this.onResize.bind(this));
+    window.addEventListener('keyup', this.onKeyUp.bind(this));
+    window.onkeydown = this.onKeyDown.bind(this); // prevent spacebar from scrolling the page
+    window.addEventListener('mouseup', this.onMouseUp.bind(this));
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
@@ -46,6 +49,7 @@ Game = Class({
 
     // Create a new Three.js scene
     this.scene = new Physijs.Scene();
+    this.scene.setGravity(new THREE.Vector3(0, -9.8, 0));
 
     // Put in a camera
     var aspectRatio = window.innerWidth / window.innerHeight;
@@ -59,12 +63,22 @@ Game = Class({
     });
     this.scene.add(this.controls.getObject());
 
-    var m = new Physijs.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshBasicMaterial({
-      color: 0xff0000
-    }));
+    this.clock = new THREE.Clock();
+
+    /* Create Entities */
+
+    var m = new Physijs.BoxMesh(
+      new THREE.BoxGeometry(10, 10, 10),
+      Physijs.createMaterial(new THREE.MeshBasicMaterial({
+        color: 0x0000ff
+      }), 0.5, 0.6), 0);
+    m.position.set(0, -10, -200);
     this.scene.add(m);
 
-    this.clock = new THREE.Clock();
+    /* Setup Systems */
+
+    this.systems.push(new MovementSystem(EntityFactory.instance.entities));
+    this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
 
     // hide loading indicator and show instructions
     this.loadingContainer.style.visibility = "hidden";
@@ -86,6 +100,8 @@ Game = Class({
   },
 
   update: function() {
+    requestAnimationFrame(this.update.bind(this));
+
     var time = performance.now();
     var dt = (time - this.prevTime) / 1000;
 
@@ -96,6 +112,10 @@ Game = Class({
 
       this.controls.update(dt);
 
+      this.systems.forEach(function(system) {
+        system.update(dt);
+      });
+
       this.scene.simulate();
     }
 
@@ -103,8 +123,6 @@ Game = Class({
     this.stats.update();
 
     this.prevTime = time;
-
-    requestAnimationFrame(this.update.bind(this));
   },
 
   onResize: function(e) {
@@ -123,11 +141,35 @@ Game = Class({
   onKeyUp: function(e) {
     var keyCode = ('which' in event) ? event.which : event.keyCode;
 
-    // if 'c' is pressed, toggle the fly controls
-    if (keyCode === Game.KEY_CODES.c && this.guiMenu.cameraFocus === 'none') {
-      this.controlsEnabled = !this.controlsEnabled;
-      this.flyControls.setEnabled(this.controlsEnabled);
+    if (keyCode === Game.KEY_CODES.e) {
+      var direction = new THREE.Vector3();
+      this.controls.getDirection(direction);
+
+      EntityFactory.instance.makeBullet({
+        scene: this.scene,
+        position: this.controls.getObject().position.clone(),
+        rotation: this.controls.getObject().rotation.clone(),
+        direction: direction,
+        velocity: 100
+      });
     }
+  },
+
+  onMouseUp: function(e) {
+    if (this.paused) {
+      return;
+    }
+
+    var direction = new THREE.Vector3();
+    this.controls.getDirection(direction);
+
+    EntityFactory.instance.makeBullet({
+      scene: this.scene,
+      position: this.controls.getObject().position.clone(),
+      rotation: this.controls.getObject().rotation.clone(),
+      direction: direction,
+      velocity: 15
+    });
   },
 
   initPointerLock: function() {
@@ -228,7 +270,8 @@ Game = Class({
   statics: {
     KEY_CODES: {
       c: 67,
-      space: 32
+      space: 32,
+      e: 69
     }
   }
 });
