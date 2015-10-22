@@ -26,7 +26,7 @@ EntityFactory = Class({
     //player.drawable.mesh.rotation.copy(options.rotation);
 
     player.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.player;
-    player.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy;
+    player.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.enemyBullet;
 
     player.drawable.scene.add(player.drawable.mesh);
 
@@ -58,7 +58,7 @@ EntityFactory = Class({
         color: 0x00ff00
       }), 0.7, 0.9));
 
-    bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.bullet;
+    bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
     bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy;
 
     bullet.drawable.mesh.position.copy(options.position);
@@ -68,6 +68,7 @@ EntityFactory = Class({
     bullet.drawable.mesh.setDamping(0.1, 0);
 
     /*bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+      console.log(other_object);
     });*/
 
     if (options.position) {
@@ -96,10 +97,14 @@ EntityFactory = Class({
     },
 
     COLLISION_TYPES: {
-      enemy: 0x1,
-      player: 0x2,
-      bullet: 0x3,
-      obstacle: 0x4
+      nothing: 0, // collide with nothing
+
+      obstacle: 1 << 0,
+      player: 1 << 2,
+      enemy: 1 << 3,
+
+      playerBullet: 1 << 4,
+      enemyBullet: 1 << 5
     }
   }
 });

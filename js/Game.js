@@ -89,7 +89,7 @@ Game = Class({
         color: 0xdcdcdc
       }), 0);
     ground._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
-    ground._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.bullet;
+    ground._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
     this.scene.add(ground);
 
     /* Create Entities */
@@ -107,7 +107,7 @@ Game = Class({
         color: 0x0000ff
       }), 0.5, 0.6), 0);
     m._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
-    m._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.bullet;
+    m._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet;
     m.position.set(0, 6, -200);
     this.scene.add(m);
 
