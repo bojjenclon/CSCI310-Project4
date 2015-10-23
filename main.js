@@ -33,7 +33,8 @@ function init() {
     container: document.getElementById("container"),
     loadingContainer: document.getElementById("loadingContainer"),
     blocker: document.getElementById("blocker"),
-    instructions: document.getElementById("instructions")
+    instructions: document.getElementById("instructions"),
+    crosshair: document.getElementById("crosshair")
   };
   game = new Game(gameOptions);
 

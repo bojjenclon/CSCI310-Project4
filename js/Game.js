@@ -4,6 +4,7 @@ Game = Class({
     this.loadingContainer = options.loadingContainer;
     this.blocker = options.blocker;
     this.instructions = options.instructions;
+    this.crosshair = options.crosshair;
 
     this.stats = null;
 
@@ -36,6 +37,7 @@ Game = Class({
       antialias: true
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setClearColor(0xffffff, 1);
     this.container.appendChild(this.renderer.domElement);
 
     /* Stats.js Setup */
@@ -65,6 +67,19 @@ Game = Class({
     this.scene.add(this.controls.getObject());
 
     this.clock = new THREE.Clock();
+
+    /* Setup Crosshair */
+
+    this.crosshair.style.left = ((window.innerWidth / 2) - 32) + 'px';
+    this.crosshair.style.top = ((window.innerHeight / 2) - 32) + 'px';
+
+    /*var crosshairTex = ResourceManager.instance.getTexture('gfx/crossHair.png');
+    var crosshairSpr = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: crosshairTex
+      }));
+    crosshairSpr.position.set(0, 0.5, -5);
+    this.controls.getObject().add(crosshairSpr);*/
 
     /*var geometry = new THREE.TubeGeometry(
       new THREE.LineCurve(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -10)), //path
@@ -125,6 +140,7 @@ Game = Class({
     this.loadingContainer.style.visibility = "hidden";
     this.blocker.style.visibility = "visible";
     this.instructions.style.visibility = "visible";
+    this.crosshair.style.display = 'block';
 
     // ensure the user is at the top of the page
     document.body.scrollTop = document.documentElement.scrollTop = 0;
@@ -175,6 +191,9 @@ Game = Class({
 
     this.camera.aspect = (window.innerWidth / window.innerHeight);
     this.camera.updateProjectionMatrix();
+
+    this.crosshair.style.left = ((window.innerWidth / 2) - 32) + 'px';
+    this.crosshair.style.top = ((window.innerHeight / 2) - 32) + 'px';
   },
 
   onKeyDown: function(e) {

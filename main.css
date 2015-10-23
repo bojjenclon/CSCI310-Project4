@@ -75,3 +75,13 @@ body, html {
   vertical-align: middle;
 }
 
+#crosshair {
+  width: 100px;
+  height: 100px;
+  background-image: url('gfx/crosshair.png');
+  background-repeat: no-repeat;
+  position: absolute;
+  display: none;
+  opacity: 70%;
+}
+
