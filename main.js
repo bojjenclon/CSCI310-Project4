@@ -34,7 +34,10 @@ function init() {
     loadingContainer: document.getElementById("loadingContainer"),
     blocker: document.getElementById("blocker"),
     instructions: document.getElementById("instructions"),
-    crosshair: document.getElementById("crosshair")
+    crosshair: document.getElementById("crosshair"),
+    modelsToPreload: [
+      "models/potato.json"
+    ]
   };
   game = new Game(gameOptions);
 

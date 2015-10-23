@@ -21,6 +21,9 @@ Game = Class({
 
     this.systems = [];
     this.postPhysicsSystems = [];
+
+    this.modelsToPreload = options.modelsToPreload;
+    this.percentModelsLoaded = 0;
   },
 
   start: function(runImmediately) {
@@ -136,18 +139,31 @@ Game = Class({
 
     this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
 
-    // hide loading indicator and show instructions
-    this.loadingContainer.style.visibility = "hidden";
-    this.blocker.style.visibility = "visible";
-    this.instructions.style.visibility = "visible";
-    this.crosshair.style.display = 'block';
+    this.loadModels();
+  },
 
-    // ensure the user is at the top of the page
-    document.body.scrollTop = document.documentElement.scrollTop = 0;
+  loadModels: function() {
+    this.modelsToPreload.forEach(function(model) {
+      ResourceManager.instance.loadModel(model, this.modelLoaded.bind(this));
+    }.bind(this));
+  },
 
-    this.initPointerLock();
+  modelLoaded: function(model) {
+    var percentPerModel = 100.0 / this.modelsToPreload.length;
+    this.percentModelsLoaded += percentPerModel;
 
-    if (runImmediately) {
+    if (this.percentModelsLoaded > 99.0) {
+      // hide loading indicator and show instructions
+      this.loadingContainer.style.visibility = "hidden";
+      this.blocker.style.visibility = "visible";
+      this.instructions.style.visibility = "visible";
+      this.crosshair.style.display = 'block';
+
+      // ensure the user is at the top of the page
+      document.body.scrollTop = document.documentElement.scrollTop = 0;
+
+      this.initPointerLock();
+
       this.run();
     }
   },
@@ -235,7 +251,7 @@ Game = Class({
         rotation: this.controls.getObject().rotation.clone(),
         direction: direction,
         rotationMatrix: new THREE.Matrix4().extractRotation(this.controls.getObject().matrix),
-        velocity: 5
+        velocity: 3000
       });
     }
     else if (e.button === 2) {
