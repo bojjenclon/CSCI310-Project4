@@ -16,6 +16,7 @@ EntityFactory = Class({
     player.addComponent(C.Jump);
     player.addComponent(C.Drawable);
     player.addComponent(C.CameraFollow);
+    player.addComponent(C.ShootDelay);
 
     player.drawable.scene = options.scene;
     player.drawable.mesh = new Physijs.BoxMesh(
@@ -48,6 +49,8 @@ EntityFactory = Class({
     player.cameraFollow.object = options.controlsObject;
     player.cameraFollow.offset = options.cameraOffset;
 
+    player.shootDelay.delayTheshold = 0.5;
+
     return player;
   },
 
@@ -68,7 +71,7 @@ EntityFactory = Class({
       );
 
       bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
-      bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy;
+      bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
 
       bullet.drawable.mesh.position.copy(options.position);
       bullet.drawable.mesh.rotation.copy(options.rotation);

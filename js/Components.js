@@ -4,6 +4,7 @@ module.exports = {
   Jump: require('./components/Jump.js'),
   Drawable: require('./components/Drawable.js'),
   Expirable: require('./components/Expirable.js'),
-  CameraFollow: require('./components/CameraFollow.js')
+  CameraFollow: require('./components/CameraFollow.js'),
+  ShootDelay: require('./components/ShootDelay.js')
 };
 

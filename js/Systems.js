@@ -34,31 +34,37 @@ PlayerInputSystem = Class({
         entity.jump.canJump = false;
       }
 
-      if (MouseController.instance.wasPressed.left) {
-        var direction = new THREE.Vector3();
-        entity.cameraFollow.controls.getDirection(direction);
+      if (entity.shootDelay.canShoot) {
+        if (MouseController.instance.wasPressed.left) {
+          var direction = new THREE.Vector3();
+          entity.cameraFollow.controls.getDirection(direction);
 
-        EntityFactory.instance.makeBullet({
-          scene: entity.drawable.scene,
-          position: entity.cameraFollow.object.position.clone(),
-          rotation: entity.cameraFollow.object.rotation.clone(),
-          direction: direction,
-          rotationMatrix: entity.velocity.rotationMatrix,
-          velocity: 2000
-        });
-      }
-      else if (MouseController.instance.wasPressed.right) {
-        var direction = new THREE.Vector3();
-        entity.cameraFollow.controls.getDirection(direction);
+          EntityFactory.instance.makeBullet({
+            scene: entity.drawable.scene,
+            position: entity.cameraFollow.object.position.clone(),
+            rotation: entity.cameraFollow.object.rotation.clone(),
+            direction: direction,
+            rotationMatrix: entity.velocity.rotationMatrix,
+            velocity: 2000
+          });
 
-        EntityFactory.instance.makeBullet({
-          scene: entity.drawable.scene,
-          position: entity.cameraFollow.object.position.clone(),
-          rotation: entity.cameraFollow.object.rotation.clone(),
-          direction: direction,
-          rotationMatrix: entity.velocity.rotationMatrix,
-          velocity: 200
-        });
+          entity.shootDelay.canShoot = false;
+        }
+        else if (MouseController.instance.wasPressed.right) {
+          var direction = new THREE.Vector3();
+          entity.cameraFollow.controls.getDirection(direction);
+
+          EntityFactory.instance.makeBullet({
+            scene: entity.drawable.scene,
+            position: entity.cameraFollow.object.position.clone(),
+            rotation: entity.cameraFollow.object.rotation.clone(),
+            direction: direction,
+            rotationMatrix: entity.velocity.rotationMatrix,
+            velocity: 200
+          });
+
+          entity.shootDelay.canShoot = false;
+        }
       }
 
       dv = dv.applyMatrix4(entity.velocity.rotationMatrix);
@@ -187,18 +193,23 @@ PhysicsUpdateSystem = Class({
   }
 });
 
-BulletSystem = Class({
+ShootDelaySystem = Class({
   constructor: function(entities) {
     this.entities = entities;
   },
 
   update: function(dt) {
-    var bullets = this.entities.queryTag("bullet");
+    var shooters = this.entities.queryComponents([C.ShootDelay]);
 
-    bullets.forEach(function(entity) {
-      entity.position.x += entity.velocity.x;
-      entity.position.y += entity.velocity.y;
-      entity.position.z += entity.velocity.z;
+    shooters.forEach(function(entity) {
+      if (entity.shootDelay.canShoot === false) {
+        entity.shootDelay.timer += dt;
+
+        if (entity.shootDelay.timer > entity.shootDelay.delayTheshold) {
+          entity.shootDelay.canShoot = true;
+          entity.shootDelay.timer = 0;
+        }
+      }
     });
   }
 });

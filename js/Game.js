@@ -135,6 +135,7 @@ Game = Class({
     this.systems.push(new MovementSystem(EntityFactory.instance.entities));
     this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
     this.systems.push(new CameraFollowSystem(EntityFactory.instance.entities, this.renderer.domElement));
+    this.systems.push(new ShootDelaySystem(EntityFactory.instance.entities));
 
     this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
 
