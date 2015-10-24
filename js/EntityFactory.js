@@ -1,5 +1,6 @@
 var EntityManager = require('tiny-ecs').EntityManager;
 var C = require('./Components.js');
+var b3 = require('./../b3core.0.1.0.js');
 
 EntityFactory = Class({
   constructor: function() {
@@ -75,6 +76,7 @@ EntityFactory = Class({
     enemy.addComponent(C.Velocity);
     enemy.addComponent(C.Drawable);
     enemy.addComponent(C.Health);
+    enemy.addComponent(C.AI);
 
     enemy.drawable.scene = options.scene;
 
@@ -82,7 +84,7 @@ EntityFactory = Class({
       new THREE.BoxGeometry(10, 10, 10),
       Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x0000ff
-      }), 0.5, 0.6), 0);
+      }), 0.5, 0.6));
     enemy.drawable.mesh.entity = enemy;
 
     enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
@@ -104,6 +106,128 @@ EntityFactory = Class({
       }));
     enemy.health.healthBar.position.set(0, 7, 0);
     enemy.drawable.mesh.add(enemy.health.healthBar);
+
+    var FaceNode = b3.Class(b3.Action);
+    FaceNode.prototype.name = 'FaceNode';
+    FaceNode.prototype.parameters = {
+      'facing': null
+    };
+
+    FaceNode.prototype.__Action_initialize = FaceNode.prototype.initialize;
+    FaceNode.prototype.initialize = function(settings) {
+      settings = settings || {};
+
+      this.__Action_initialize();
+
+      this.facing = settings.facing;
+    };
+
+    FaceNode.prototype.tick = function(tick) {
+      if (this.facing._manager === null || this.facing._manager === undefined) {
+        return b3.FAILURE;
+      }
+
+      // http://forum.unity3d.com/threads/making-an-object-rotate-to-face-another.1211/
+      // http://answers.unity3d.com/questions/503934/chow-to-check-if-an-object-is-facing-another.html
+
+      var parentPos = tick.target.drawable.mesh.position.clone();
+      var followingPos = this.facing.drawable.mesh.position.clone();
+
+      parentPos.y = 0;
+      followingPos.y = 0;
+
+      var posDif = parentPos.clone();
+      posDif.sub(followingPos);
+
+      var direction = new THREE.Vector3(0, 0, -1);
+      var rotation = new THREE.Euler(0, 0, 0, "YXZ");
+      rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
+
+      var forward = new THREE.Vector3();
+      forward.copy(direction).applyEuler(rotation);
+
+      var angle = forward.angleTo(posDif);
+
+      if (angle < 0.01) {
+        return b3.SUCCESS;
+      }
+
+      var m = new THREE.Matrix4();
+      m.lookAt(followingPos, parentPos, new THREE.Vector3(0, 1, 0));
+
+      var parentRotation = new THREE.Quaternion().setFromEuler(tick.target.drawable.mesh.rotation);
+      var targetRotation = new THREE.Quaternion().setFromRotationMatrix(m);
+
+      var str = Math.min(Globals.instance.dt * 2, 5);
+
+      parentRotation.slerp(targetRotation, str);
+
+      tick.target.drawable.mesh.rotation.setFromQuaternion(parentRotation);
+      tick.target.drawable.mesh.__dirtyRotation = true;
+
+      return b3.RUNNING;
+    };
+
+    var FollowNode = b3.Class(b3.Action);
+    FollowNode.prototype.name = 'FollowNode';
+    FollowNode.prototype.parameters = {
+      'following': null
+    };
+
+    FollowNode.prototype.__Action_initialize = FollowNode.prototype.initialize;
+    FollowNode.prototype.initialize = function(settings) {
+      settings = settings || {};
+
+      this.__Action_initialize();
+
+      this.following = settings.following;
+    };
+
+    FollowNode.prototype.tick = function(tick) {
+      if (this.following._manager === null || this.following._manager === undefined) {
+        return b3.FAILURE;
+      }
+
+      var parentPos = tick.target.drawable.mesh.position.clone();
+      var followingPos = this.following.drawable.mesh.position.clone();
+
+      var distance = parentPos.distanceTo(followingPos);
+
+      if (distance < 0.5) {
+        return b3.SUCCESS;
+      }
+
+      var difference = new THREE.Vector3();
+      difference.subVectors(followingPos, parentPos);
+
+      var normal = difference.normalize();
+      var velocity = new THREE.Vector3(200 * normal.x, 0, 200 * normal.z);
+
+      tick.target.velocity.x = velocity.x;
+      tick.target.velocity.y = velocity.y;
+      tick.target.velocity.z = velocity.z;
+
+      return b3.RUNNING;
+    };
+
+    enemy.ai.tree = new b3.BehaviorTree();
+    enemy.ai.tree.root = new b3.Sequence({
+      children: [
+        new b3.Sequence({
+          children: [
+            new FaceNode({
+              facing: options.aiTarget
+            }),
+            new FollowNode({
+              following: options.aiTarget
+            })
+          ]
+        })
+      ]
+    });
+
+    enemy.ai.target = enemy;
+    enemy.ai.blackboard = new b3.Blackboard();
   },
 
   makeBullet: function(options) {

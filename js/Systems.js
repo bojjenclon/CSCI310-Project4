@@ -104,7 +104,7 @@ MovementSystem = Class({
       var velocity = new THREE.Vector3(entity.velocity.x, entity.velocity.y, entity.velocity.z);
 
       if (entity.hasComponent(C.Drawable)) {
-        entity.drawable.mesh.applyCentralImpulse(velocity, new THREE.Vector3());
+        entity.drawable.mesh.applyCentralImpulse(velocity);
         //entity.drawable.mesh.setLinearVelocity(entity.velocity);
       }
       else {
@@ -312,6 +312,24 @@ DeathSystem = Class({
 
         entity.remove();
       }
+    });
+  }
+});
+
+AISystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var singularities = this.entities.queryComponents([C.AI]);
+
+    singularities.forEach(function(entity) {
+      if (entity.ai.tree === null || entity.ai.target === null || entity.ai.blackboard === null) {
+        return;
+      }
+
+      entity.ai.tree.tick(entity.ai.target, entity.ai.blackboard);
     });
   }
 });

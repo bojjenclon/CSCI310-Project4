@@ -1,5 +1,7 @@
 Globals = Class({
   constructor: function() {
+    this.dt = 0;
+
     this.hudElement = null;
 
     this.healthElement = null;

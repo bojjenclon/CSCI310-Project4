@@ -68,8 +68,6 @@ Game = Class({
     });
     this.scene.add(this.controls.getObject());
 
-    this.clock = new THREE.Clock();
-
     /* Setup Crosshair */
 
     this.crosshair.style.left = ((window.innerWidth / 2) - 32) + 'px';
@@ -87,7 +85,7 @@ Game = Class({
         color: 0x00dd00
       }), 0);
     ground._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
-    ground._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+    ground._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
     this.scene.add(ground);
 
     /* Create Entities */
@@ -102,13 +100,15 @@ Game = Class({
 
     EntityFactory.instance.makeEnemy({
       scene: this.scene,
-      position: new THREE.Vector3(0, 5, -200)
+      position: new THREE.Vector3(0, 10, -200),
+      aiTarget: this.player
     });
 
     /* Setup Systems */
 
     this.systems.push(new CameraRotationSystem(EntityFactory.instance.entities));
     this.systems.push(new PlayerInputSystem(EntityFactory.instance.entities));
+    this.systems.push(new AISystem(EntityFactory.instance.entities));
     this.systems.push(new MovementSystem(EntityFactory.instance.entities));
     this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
     this.systems.push(new CameraFollowSystem(EntityFactory.instance.entities));
@@ -158,24 +158,24 @@ Game = Class({
     requestAnimationFrame(this.update.bind(this));
 
     var time = performance.now();
-    var dt = (time - this.prevTime) / 1000;
+    Globals.instance.dt = (time - this.prevTime) / 1000;
 
     if (!this.paused) {
-      if (dt > 0.5) {
-        dt = 0.5;
+      if (Globals.instance.dt > 0.5) {
+        Globals.instance.dt = 0.5;
       }
 
       this.systems.forEach(function(system) {
-        system.update(dt);
+        system.update(Globals.instance.dt);
       });
 
       this.scene.simulate();
 
       this.postPhysicsSystems.forEach(function(system) {
-        system.update(dt);
+        system.update(Globals.instance.dt);
       });
 
-      MouseController.instance.update(dt);
+      MouseController.instance.update(Globals.instance.dt);
     }
 
     this.renderer.render(this.scene, this.camera);

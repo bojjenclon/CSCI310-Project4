@@ -8,6 +8,7 @@ module.exports = {
   ShootDelay: require('./components/ShootDelay.js'),
   OneTimeHit: require('./components/OneTimeHit.js'),
   Hurt: require('./components/Hurt.js'),
-  Health: require('./components/Health.js')
+  Health: require('./components/Health.js'),
+  AI: require('./components/Ai.js')
 };
 
