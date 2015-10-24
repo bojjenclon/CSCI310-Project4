@@ -34,6 +34,7 @@ Game = Class({
     window.addEventListener('resize', this.onResize.bind(this));
     window.addEventListener('keyup', this.onKeyUp.bind(this));
     window.onkeydown = this.onKeyDown.bind(this); // prevent spacebar from scrolling the page
+    window.addEventListener('mousedown', this.onMouseDown.bind(this));
     window.addEventListener('mouseup', this.onMouseUp.bind(this));
 
     this.renderer = new THREE.WebGLRenderer({
@@ -192,6 +193,8 @@ Game = Class({
       this.postPhysicsSystems.forEach(function(system) {
         system.update(dt);
       });
+
+      MouseController.instance.update(dt);
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -234,35 +237,31 @@ Game = Class({
     }
   },
 
+  onMouseDown: function(e) {
+    if (this.paused) {
+      return;
+    }
+
+    if (e.button === 0) {
+      MouseController.instance.isDown.left = true;
+    }
+    else if (e.button === 2) {
+      MouseController.instance.isDown.right = true;
+    }
+  },
+
   onMouseUp: function(e) {
     if (this.paused) {
       return;
     }
 
     if (e.button === 0) {
-      var direction = new THREE.Vector3();
-      this.controls.getDirection(direction);
-
-      EntityFactory.instance.makeBullet({
-        scene: this.scene,
-        position: this.controls.getObject().position.clone(),
-        rotation: this.controls.getObject().rotation.clone(),
-        direction: direction,
-        rotationMatrix: new THREE.Matrix4().extractRotation(this.controls.getObject().matrix),
-        velocity: 3000
-      });
+      MouseController.instance.isDown.left = false;
+      MouseController.instance.wasPressed.left = true;
     }
     else if (e.button === 2) {
-      var direction = new THREE.Vector3();
-      this.controls.getDirection(direction);
-
-      EntityFactory.instance.makeBullet({
-        scene: this.scene,
-        position: this.controls.getObject().position.clone(),
-        rotation: this.controls.getObject().rotation.clone(),
-        direction: direction,
-        velocity: 1
-      });
+      MouseController.instance.isDown.right = false;
+      MouseController.instance.wasPressed.right = true;
     }
   },
 

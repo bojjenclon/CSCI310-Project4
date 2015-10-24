@@ -64,7 +64,7 @@ EntityFactory = Class({
       bullet.drawable.scene = options.scene;
       bullet.drawable.mesh = new Physijs.ConvexMesh(
         model.geometry,
-        Physijs.createMaterial(model.material, 0.7, 0.9)
+        Physijs.createMaterial(model.material, 0.7, 0.01)
       );
 
       bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;

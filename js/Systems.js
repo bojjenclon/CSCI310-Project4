@@ -34,9 +34,34 @@ PlayerInputSystem = Class({
         entity.jump.canJump = false;
       }
 
-      if (entity.velocity.rotationMatrix !== null) {
-        dv = dv.applyMatrix4(entity.velocity.rotationMatrix);
+      if (MouseController.instance.wasPressed.left) {
+        var direction = new THREE.Vector3();
+        entity.cameraFollow.controls.getDirection(direction);
+
+        EntityFactory.instance.makeBullet({
+          scene: entity.drawable.scene,
+          position: entity.cameraFollow.object.position.clone(),
+          rotation: entity.cameraFollow.object.rotation.clone(),
+          direction: direction,
+          rotationMatrix: entity.velocity.rotationMatrix,
+          velocity: 2000
+        });
       }
+      else if (MouseController.instance.wasPressed.right) {
+        var direction = new THREE.Vector3();
+        entity.cameraFollow.controls.getDirection(direction);
+
+        EntityFactory.instance.makeBullet({
+          scene: entity.drawable.scene,
+          position: entity.cameraFollow.object.position.clone(),
+          rotation: entity.cameraFollow.object.rotation.clone(),
+          direction: direction,
+          rotationMatrix: entity.velocity.rotationMatrix,
+          velocity: 200
+        });
+      }
+
+      dv = dv.applyMatrix4(entity.velocity.rotationMatrix);
 
       velocity.add(dv);
 

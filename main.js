@@ -11,6 +11,7 @@ require('./js/ResourceManager.js');
 require('./js/PointerLockControls.js');
 require('./js/EntityFactory.js');
 require('./js/Systems.js');
+require('./js/MouseController.js');
 
 Physijs.scripts.worker = './libs/physijsWorker.js';
 Physijs.scripts.ammo = './ammo.js';
