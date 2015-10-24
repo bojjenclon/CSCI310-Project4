@@ -230,6 +230,30 @@ HurtSystem = Class({
   }
 });
 
+
+HealthBarSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var mortals = this.entities.queryComponents([C.Health]);
+
+    mortals.forEach(function(entity) {
+      if (entity.health.healthBar === null || entity.health.changed === false) {
+        return;
+      }
+
+      var percent = entity.health.hp / entity.health.maxHP;
+
+      entity.health.healthBar.scale.x = percent;
+      entity.health.healthBar.material.color = new THREE.Color(1 - percent, percent, 0);
+
+      entity.health.changed = false;
+    });
+  }
+});
+
 DeathSystem = Class({
   constructor: function(entities) {
     this.entities = entities;

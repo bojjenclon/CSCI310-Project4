@@ -88,6 +88,14 @@ EntityFactory = Class({
     enemy.position.x = options.position.x;
     enemy.position.y = options.position.y;
     enemy.position.z = options.position.z;
+
+    enemy.health.healthBar = new THREE.Mesh(
+      new THREE.BoxGeometry(10, 1.5, 0.5),
+      new THREE.MeshBasicMaterial({
+        color: 0x00ff00
+      }));
+    enemy.health.healthBar.position.set(0, 7, 0);
+    enemy.drawable.mesh.add(enemy.health.healthBar);
   },
 
   makeBullet: function(options) {
@@ -126,6 +134,7 @@ EntityFactory = Class({
           other_object.entity.hurt.originalColor = other_object.material.color;
 
           other_object.entity.health.hp--;
+          other_object.entity.health.changed = true;
 
           Globals.instance.score++;
 
