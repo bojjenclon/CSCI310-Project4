@@ -43,6 +43,14 @@ EntityFactory = Class({
       if (contact_normal.y < 0 && other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.obstacle) {
         player.jump.canJump = true;
       }
+
+      if (other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy && player.hasComponent(C.Hurt) === false) {
+        player.addComponent(C.Hurt);
+        player.hurt.originalColor = player.drawable.mesh.material.color;
+
+        player.health.hp--;
+        player.health.changed = true;
+      }
     });
 
     player.position.x = options.position.x;

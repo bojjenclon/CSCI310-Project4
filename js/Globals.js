@@ -1,10 +1,16 @@
 Globals = Class({
   constructor: function() {
     this.hudElement = null;
+
+    this.healthElement = null;
+
     this.scoreElement = null;
     this.score = 0;
+
     this.reloadingElement = null;
     this.reloadImg = null;
+
+    this.overlayElement = null;
   }
 }, {
   statics: {

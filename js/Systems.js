@@ -220,16 +220,52 @@ HurtSystem = Class({
 
       if (entity.hurt.timer < entity.hurt.invulnerabilityFrames) {
         entity.drawable.mesh.material.color = entity.hurt.hurtColor;
+
+        if (entity.hasTag("player")) {
+          Globals.instance.overlayElement.style.backgroundColor = "#bb0000";
+          Globals.instance.overlayElement.style.visibility = "visible";
+        }
       }
       else {
         entity.drawable.mesh.material.color = entity.hurt.originalColor;
 
         entity.removeComponent(C.Hurt);
+
+        if (entity.hasTag("player")) {
+          Globals.instance.overlayElement.style.visibility = "hidden";
+        }
       }
     });
   }
 });
 
+PlayerHealthSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+
+    this.keyboard = new THREEx.KeyboardState();
+    this.jumped = false;
+  },
+
+  update: function(dt) {
+    var players = this.entities.queryTag("player");
+
+    players.forEach(function(entity) {
+      if (entity.health.changed === false) {
+        return;
+      }
+
+      var percent = entity.health.hp / entity.health.maxHP;
+      var percentRounded = Math.round(percent * 100);
+
+      var healthElement = Globals.instance.healthElement;
+      var color = new THREE.Color(1 - percent, percent, 0);
+
+      healthElement.innerHTML = percentRounded + "%";
+      healthElement.style.color = "#" + color.getHexString();
+    });
+  }
+});
 
 HealthBarSystem = Class({
   constructor: function(entities) {

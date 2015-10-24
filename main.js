@@ -34,12 +34,17 @@ var game = null;
 
 function init() {
   Globals.instance.hudElement = document.getElementById("hud");
+
+  Globals.instance.healthElement = document.getElementById("health");
   Globals.instance.scoreElement = document.getElementById("score");
+
   Globals.instance.reloadingElement = document.getElementById("reloading");
   Globals.instance.reloadImg = new SuperGif({
     gif: document.getElementById("reloadImg")
   });
   Globals.instance.reloadImg.load();
+
+  Globals.instance.overlayElement = document.getElementById("overlay");
 
   var gameOptions = {
     container: document.getElementById("container"),
