@@ -94,10 +94,19 @@ body, html {
   position: absolute;
   left: 10px;
   top: 10px;
-  width: 100px;
+  width: 160px;
   height: 100px;
   display: none;
   opacity: 70%;
+}
+
+#hud #reloading {
+  height: 64px;
+  visibility: hidden;
+}
+
+#hud #reloading .jsgif canvas {
+  vertical-align: middle;
 }
 
 #crosshair {

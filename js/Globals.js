@@ -1,7 +1,9 @@
 Globals = Class({
   constructor: function() {
-    this.hud = null;
-    this.score = null;
+    this.hudElement = null;
+    this.scoreElement = null;
+    this.reloadingElement = null;
+    this.reloadImg = null;
   }
 }, {
   statics: {

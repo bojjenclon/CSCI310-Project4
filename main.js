@@ -5,6 +5,8 @@ global.Physijs = require('physijs-browserify')(THREE);
 global.Stats = require('stats.js');
 
 require('./RequestAnimationFrame.js');
+require('./rubbable.js');
+global.SuperGif = require('./libgif.js');
 
 require('./js/Game.js');
 require('./js/Globals.js');
@@ -31,8 +33,13 @@ Physijs.scripts.ammo = './ammo.js';
 var game = null;
 
 function init() {
-  Globals.hud = document.getElementById("hud");
-  Globals.score = document.getElementById("score");
+  Globals.hudElement = document.getElementById("hud");
+  Globals.scoreElement = document.getElementById("score");
+  Globals.reloadingElement = document.getElementById("reloading");
+  Globals.reloadImg = new SuperGif({
+    gif: document.getElementById("reloadImg")
+  });
+  Globals.reloadImg.load();
 
   var gameOptions = {
     container: document.getElementById("container"),
