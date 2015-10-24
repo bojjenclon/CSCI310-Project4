@@ -5,6 +5,7 @@ PlayerInputSystem = Class({
     this.entities = entities;
 
     this.keyboard = new THREEx.KeyboardState(domElement);
+    this.jumped = false;
   },
 
   update: function(dt) {
@@ -15,22 +16,26 @@ PlayerInputSystem = Class({
       var dv = new THREE.Vector3(); // delta velocity
 
       if (this.keyboard.pressed("w")) {
-        dv.z = -8;
+        dv.z = -PlayerInputSystem.MOVE_SPEED;
       }
       else if (this.keyboard.pressed("s")) {
-        dv.z = 8;
+        dv.z = PlayerInputSystem.MOVE_SPEED;
       }
 
       if (this.keyboard.pressed("a")) {
-        dv.x = -8;
+        dv.x = -PlayerInputSystem.MOVE_SPEED;
       }
       else if (this.keyboard.pressed("d")) {
-        dv.x = 8;
+        dv.x = PlayerInputSystem.MOVE_SPEED;
+      }
+
+      if (this.keyboard.pressed("space") && entity.jump.canJump) {
+        dv.y = 1500;
+        entity.jump.canJump = false;
       }
 
       if (entity.velocity.rotationMatrix !== null) {
-        var rotationMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.object.matrix);
-        dv = dv.applyMatrix4(rotationMatrix);
+        dv = dv.applyMatrix4(entity.velocity.rotationMatrix);
       }
 
       velocity.add(dv);
@@ -39,6 +44,10 @@ PlayerInputSystem = Class({
       entity.velocity.y = velocity.y;
       entity.velocity.z = velocity.z;
     }.bind(this));
+  }
+}, {
+  statics: {
+    MOVE_SPEED: 15
   }
 });
 
@@ -115,9 +124,20 @@ CameraFollowSystem = Class({
     }*/
 
     follows.forEach(function(entity) {
-      entity.cameraFollow.object.position.x = entity.position.x;
-      entity.cameraFollow.object.position.y = entity.position.y;
-      entity.cameraFollow.object.position.z = entity.position.z;
+      if (entity.velocity.rotationMatrix === null) {
+        return;
+      }
+
+      var offset = entity.cameraFollow.offset.clone();
+      offset = offset.applyMatrix4(entity.velocity.rotationMatrix);
+
+      entity.cameraFollow.object.position.x = entity.position.x + offset.x;
+      entity.cameraFollow.object.position.y = entity.position.y + offset.y;
+      entity.cameraFollow.object.position.z = entity.position.z + offset.z;
+
+      entity.drawable.mesh.rotation.x = entity.cameraFollow.object.rotation.x;
+      entity.drawable.mesh.rotation.y = entity.cameraFollow.object.rotation.y;
+      entity.drawable.mesh.rotation.z = entity.cameraFollow.object.rotation.z;
     });
   }
 });

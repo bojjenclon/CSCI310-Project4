@@ -33,35 +33,14 @@ ResourceManager = Class({
       return;
     }
     else if (path in this.models) {
-      /*var model = this.models[path];
-      var mesh = new THREE.Mesh(model.geometry, model.material);
-
-      if (callback) {
-        callback(mesh);
-      }*/
       callback(this.models[path]);
 
       return;
     }
 
     this.jsonLoader.load(path, function(geometry, materials) {
-      /*for (var i in materials) {
-        var mat = materials[i];
-        mat.map = this.getTexture('gfx/' + mat.mapDiffuse);
-        //mat.side = THREE.DoubleSide;
-      }*/
-
       var material = new THREE.MeshFaceMaterial(materials);
-      /*var mesh = new THREE.Mesh(geometry, material);
 
-      this.models[path] = {
-        geometry: geometry,
-        material: material
-      };
-
-      if (callback) {
-        callback(mesh);
-      }*/
       var model = new Model({
         geometry: geometry,
         material: material

@@ -13,12 +13,13 @@ EntityFactory = Class({
 
     player.addComponent(C.Position);
     player.addComponent(C.Velocity);
+    player.addComponent(C.Jump);
     player.addComponent(C.Drawable);
     player.addComponent(C.CameraFollow);
 
     player.drawable.scene = options.scene;
     player.drawable.mesh = new Physijs.BoxMesh(
-      new THREE.BoxGeometry(2, 5, 2),
+      new THREE.BoxGeometry(2, 8, 2),
       Physijs.createMaterial(new THREE.MeshBasicMaterial({
         color: 0xffff00
       }), 0.9, 0.1));
@@ -31,13 +32,21 @@ EntityFactory = Class({
     player.drawable.scene.add(player.drawable.mesh);
 
     player.drawable.mesh.setDamping(0.99, 0);
+    player.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 0, 0));
+
+    player.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+      if (contact_normal.y < 0 && other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.obstacle) {
+        player.jump.canJump = true;
+      }
+    });
 
     player.position.x = options.position.x;
     player.position.y = options.position.y;
     player.position.z = options.position.z;
 
     player.cameraFollow.controls = options.controls;
-    player.cameraFollow.object = options.object;
+    player.cameraFollow.object = options.controlsObject;
+    player.cameraFollow.offset = options.cameraOffset;
 
     return player;
   },
@@ -53,7 +62,7 @@ EntityFactory = Class({
       bullet.addComponent(C.Expirable);
 
       bullet.drawable.scene = options.scene;
-      bullet.drawable.mesh = new Physijs.SphereMesh(
+      bullet.drawable.mesh = new Physijs.ConvexMesh(
         model.geometry,
         Physijs.createMaterial(model.material, 0.7, 0.9)
       );

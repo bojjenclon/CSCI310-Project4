@@ -55,7 +55,7 @@ Game = Class({
 
     // Create a new Three.js scene
     this.scene = new Physijs.Scene();
-    this.scene.setGravity(new THREE.Vector3(0, -9.8, 0));
+    this.scene.setGravity(new THREE.Vector3(0, -9.8 * 3, 0));
 
     // Put in a camera
     var aspectRatio = window.innerWidth / window.innerHeight;
@@ -64,8 +64,7 @@ Game = Class({
 
     /* Camera Controller */
     this.controls = new PointerLockControls({
-      camera: this.camera,
-      minimumY: 5
+      camera: this.camera
     });
     this.scene.add(this.controls.getObject());
 
@@ -75,14 +74,6 @@ Game = Class({
 
     this.crosshair.style.left = ((window.innerWidth / 2) - 32) + 'px';
     this.crosshair.style.top = ((window.innerHeight / 2) - 32) + 'px';
-
-    /*var crosshairTex = ResourceManager.instance.getTexture('gfx/crossHair.png');
-    var crosshairSpr = new THREE.Sprite(
-      new THREE.SpriteMaterial({
-        map: crosshairTex
-      }));
-    crosshairSpr.position.set(0, 0.5, -5);
-    this.controls.getObject().add(crosshairSpr);*/
 
     /*var geometry = new THREE.TubeGeometry(
       new THREE.LineCurve(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -10)), //path
@@ -101,10 +92,16 @@ Game = Class({
 
     this.controls.getObject().add(t);*/
 
+    var ambientLight = new THREE.AmbientLight(0xcbcbcb);
+    this.scene.add(ambientLight);
+
+    var dirLight = new THREE.DirectionalLight(0xdcdcdc, 0.5);
+    this.scene.add(dirLight);
+
     var ground = new Physijs.BoxMesh(
       new THREE.BoxGeometry(500, 1, 500),
       new THREE.MeshBasicMaterial({
-        color: 0xdcdcdc
+        color: 0x00dd00
       }), 0);
     ground._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
     ground._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
@@ -114,19 +111,20 @@ Game = Class({
 
     this.player = EntityFactory.instance.makePlayer({
       scene: this.scene,
-      position: new THREE.Vector3(0, 5, 0),
+      position: new THREE.Vector3(0, 20, 0),
       controls: this.controls,
-      object: this.controls.getObject()
+      controlsObject: this.controls.getObject(),
+      cameraOffset: new THREE.Vector3(0, 3, 0)
     });
 
     var m = new Physijs.BoxMesh(
       new THREE.BoxGeometry(10, 10, 10),
-      Physijs.createMaterial(new THREE.MeshBasicMaterial({
+      Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x0000ff
       }), 0.5, 0.6), 0);
     m._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
     m._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet;
-    m.position.set(0, 6, -200);
+    m.position.set(0, 5, -200);
     this.scene.add(m);
 
     /* Setup Systems */
