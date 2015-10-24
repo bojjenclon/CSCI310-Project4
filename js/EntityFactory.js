@@ -144,9 +144,9 @@ EntityFactory = Class({
           other_object.entity.health.hp--;
           other_object.entity.health.changed = true;
 
-          Globals.instance.score++;
+          /*Globals.instance.score++;
 
-          Globals.instance.scoreElement.innerHTML = Globals.instance.score;
+          Globals.instance.scoreElement.innerHTML = Globals.instance.score;*/
 
           bullet.oneTimeHit.alreadyHit.push(other_object.uuid);
         }
