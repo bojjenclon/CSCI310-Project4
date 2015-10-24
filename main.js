@@ -7,6 +7,7 @@ global.Stats = require('stats.js');
 require('./RequestAnimationFrame.js');
 
 require('./js/Game.js');
+require('./js/Globals.js');
 require('./js/ResourceManager.js');
 require('./js/PointerLockControls.js');
 require('./js/EntityFactory.js');
@@ -30,6 +31,9 @@ Physijs.scripts.ammo = './ammo.js';
 var game = null;
 
 function init() {
+  Globals.hud = document.getElementById("hud");
+  Globals.score = document.getElementById("score");
+
   var gameOptions = {
     container: document.getElementById("container"),
     loadingContainer: document.getElementById("loadingContainer"),

@@ -61,7 +61,7 @@ body, html {
 }
 
 #github {
-  position: fixed;
+  position: absolute;
   top: 20px;
   right: 10px;
   width: 200px;
@@ -76,7 +76,7 @@ body, html {
 }
 
 #londo {
-  position: fixed;
+  position: absolute;
   bottom: 20px;
   right: 10px;
   width: 200px;
@@ -88,6 +88,16 @@ body, html {
 
 #londo img {
   vertical-align: middle;
+}
+
+#hud {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 100px;
+  height: 100px;
+  display: none;
+  opacity: 70%;
 }
 
 #crosshair {

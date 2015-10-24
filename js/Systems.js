@@ -1,10 +1,10 @@
 var C = require('./Components.js');
 
 PlayerInputSystem = Class({
-  constructor: function(entities, domElement) {
+  constructor: function(entities) {
     this.entities = entities;
 
-    this.keyboard = new THREEx.KeyboardState(domElement);
+    this.keyboard = new THREEx.KeyboardState();
     this.jumped = false;
   },
 
@@ -43,6 +43,7 @@ PlayerInputSystem = Class({
             scene: entity.drawable.scene,
             position: entity.cameraFollow.object.position.clone(),
             rotation: entity.cameraFollow.object.rotation.clone(),
+            scale: new THREE.Vector3(0.5, 0.5, 0.5),
             direction: direction,
             rotationMatrix: entity.velocity.rotationMatrix,
             velocity: 2000
@@ -58,6 +59,7 @@ PlayerInputSystem = Class({
             scene: entity.drawable.scene,
             position: entity.cameraFollow.object.position.clone(),
             rotation: entity.cameraFollow.object.rotation.clone(),
+            scale: new THREE.Vector3(0.5, 0.5, 0.5),
             direction: direction,
             rotationMatrix: entity.velocity.rotationMatrix,
             velocity: 200
@@ -78,7 +80,7 @@ PlayerInputSystem = Class({
   }
 }, {
   statics: {
-    MOVE_SPEED: 15
+    MOVE_SPEED: 25
   }
 });
 
@@ -173,26 +175,6 @@ CameraFollowSystem = Class({
   }
 });
 
-PhysicsUpdateSystem = Class({
-  constructor: function(entities) {
-    this.entities = entities;
-  },
-
-  update: function(dt) {
-    var moveables = this.entities.queryComponents([C.Position, C.Velocity, C.Drawable]);
-
-    moveables.forEach(function(entity) {
-      entity.position.x = entity.drawable.mesh.position.x;
-      entity.position.y = entity.drawable.mesh.position.y;
-      entity.position.z = entity.drawable.mesh.position.z;
-
-      entity.velocity.x = entity.drawable.mesh.getLinearVelocity().x;
-      entity.velocity.y = entity.drawable.mesh.getLinearVelocity().y;
-      entity.velocity.z = entity.drawable.mesh.getLinearVelocity().z;
-    });
-  }
-});
-
 ShootDelaySystem = Class({
   constructor: function(entities) {
     this.entities = entities;
@@ -210,6 +192,26 @@ ShootDelaySystem = Class({
           entity.shootDelay.timer = 0;
         }
       }
+    });
+  }
+});
+
+PhysicsUpdateSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var moveables = this.entities.queryComponents([C.Position, C.Velocity, C.Drawable]);
+
+    moveables.forEach(function(entity) {
+      entity.position.x = entity.drawable.mesh.position.x;
+      entity.position.y = entity.drawable.mesh.position.y;
+      entity.position.z = entity.drawable.mesh.position.z;
+
+      entity.velocity.x = entity.drawable.mesh.getLinearVelocity().x;
+      entity.velocity.y = entity.drawable.mesh.getLinearVelocity().y;
+      entity.velocity.z = entity.drawable.mesh.getLinearVelocity().z;
     });
   }
 });

@@ -63,6 +63,7 @@ EntityFactory = Class({
       bullet.addComponent(C.Position);
       bullet.addComponent(C.Drawable);
       bullet.addComponent(C.Expirable);
+      bullet.addComponent(C.OneTimeHit);
 
       bullet.drawable.scene = options.scene;
       bullet.drawable.mesh = new Physijs.ConvexMesh(
@@ -75,13 +76,22 @@ EntityFactory = Class({
 
       bullet.drawable.mesh.position.copy(options.position);
       bullet.drawable.mesh.rotation.copy(options.rotation);
+      bullet.drawable.mesh.scale.copy(options.scale);
+
       bullet.drawable.scene.add(bullet.drawable.mesh);
 
       bullet.drawable.mesh.setDamping(0.1, 0);
 
       bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-        //console.log(other_object._physijs.collision_type);
-      });
+        if (other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+          var curScore = parseInt(Globals.score.innerHTML, 10);
+          curScore++;
+
+          Globals.score.innerHTML = curScore;
+
+          bullet.oneTimeHit.alreadyHit.push(other_object.uuid);
+        }
+      }.bind(this));
 
       if (options.position) {
         bullet.position.x = options.position.x;

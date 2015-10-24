@@ -32,7 +32,6 @@ Game = Class({
     }
 
     window.addEventListener('resize', this.onResize.bind(this));
-    window.addEventListener('keyup', this.onKeyUp.bind(this));
     window.onkeydown = this.onKeyDown.bind(this); // prevent spacebar from scrolling the page
     window.addEventListener('mousedown', this.onMouseDown.bind(this));
     window.addEventListener('mouseup', this.onMouseUp.bind(this));
@@ -76,23 +75,6 @@ Game = Class({
     this.crosshair.style.left = ((window.innerWidth / 2) - 32) + 'px';
     this.crosshair.style.top = ((window.innerHeight / 2) - 32) + 'px';
 
-    /*var geometry = new THREE.TubeGeometry(
-      new THREE.LineCurve(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -10)), //path
-      20, //segments
-      2, //radius
-      8, //radiusSegments
-      false //closed
-    );
-
-    var t = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-      color: 0x00ff00,
-      side: THREE.DoubleSide
-    }));
-
-    t.position.set(1, 1, -2);
-
-    this.controls.getObject().add(t);*/
-
     var ambientLight = new THREE.AmbientLight(0xcbcbcb);
     this.scene.add(ambientLight);
 
@@ -134,7 +116,7 @@ Game = Class({
     this.systems.push(new PlayerInputSystem(EntityFactory.instance.entities));
     this.systems.push(new MovementSystem(EntityFactory.instance.entities));
     this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
-    this.systems.push(new CameraFollowSystem(EntityFactory.instance.entities, this.renderer.domElement));
+    this.systems.push(new CameraFollowSystem(EntityFactory.instance.entities));
     this.systems.push(new ShootDelaySystem(EntityFactory.instance.entities));
 
     this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
@@ -157,6 +139,7 @@ Game = Class({
       this.loadingContainer.style.visibility = "hidden";
       this.blocker.style.visibility = "visible";
       this.instructions.style.visibility = "visible";
+      Globals.hud.style.display = 'block';
       this.crosshair.style.display = 'block';
 
       // ensure the user is at the top of the page
@@ -182,8 +165,6 @@ Game = Class({
       if (dt > 0.5) {
         dt = 0.5;
       }
-
-      //this.controls.update(dt);
 
       this.systems.forEach(function(system) {
         system.update(dt);
@@ -218,24 +199,6 @@ Game = Class({
     var keyCode = ('which' in event) ? event.which : event.keyCode;
 
     return (keyCode !== Game.KEY_CODES.space);
-  },
-
-  onKeyUp: function(e) {
-    var keyCode = ('which' in event) ? event.which : event.keyCode;
-
-    if (keyCode === Game.KEY_CODES.e) {
-      var direction = new THREE.Vector3();
-      this.controls.getDirection(direction);
-
-      EntityFactory.instance.makeBullet({
-        scene: this.scene,
-        position: this.controls.getObject().position.clone(),
-        rotation: this.controls.getObject().rotation.clone(),
-        direction: direction,
-        rotationMatrix: new THREE.Matrix4().extractRotation(this.controls.getObject().matrix),
-        velocity: 5
-      });
-    }
   },
 
   onMouseDown: function(e) {
@@ -363,10 +326,7 @@ Game = Class({
 }, {
   statics: {
     KEY_CODES: {
-      c: 67,
-      space: 32,
-      e: 69,
-      w: 87
+      space: 32
     }
   }
 });

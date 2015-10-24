@@ -5,6 +5,7 @@ module.exports = {
   Drawable: require('./components/Drawable.js'),
   Expirable: require('./components/Expirable.js'),
   CameraFollow: require('./components/CameraFollow.js'),
-  ShootDelay: require('./components/ShootDelay.js')
+  ShootDelay: require('./components/ShootDelay.js'),
+  OneTimeHit: require('./components/OneTimeHit.js')
 };
 
