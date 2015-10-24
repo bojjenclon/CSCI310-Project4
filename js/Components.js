@@ -6,6 +6,7 @@ module.exports = {
   Expirable: require('./components/Expirable.js'),
   CameraFollow: require('./components/CameraFollow.js'),
   ShootDelay: require('./components/ShootDelay.js'),
-  OneTimeHit: require('./components/OneTimeHit.js')
+  OneTimeHit: require('./components/OneTimeHit.js'),
+  Hurt: require('./components/Hurt.js')
 };
 

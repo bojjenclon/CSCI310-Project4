@@ -196,6 +196,29 @@ ShootDelaySystem = Class({
   }
 });
 
+HurtSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var hurtables = this.entities.queryComponents([C.Hurt, C.Drawable]);
+
+    hurtables.forEach(function(entity) {
+      entity.hurt.timer += dt;
+
+      if (entity.hurt.timer < entity.hurt.invulnerabilityFrames) {
+        entity.drawable.mesh.material.color = entity.hurt.hurtColor;
+      }
+      else {
+        entity.drawable.mesh.material.color = entity.hurt.originalColor;
+
+        entity.removeComponent(C.Hurt);
+      }
+    });
+  }
+});
+
 PhysicsUpdateSystem = Class({
   constructor: function(entities) {
     this.entities = entities;

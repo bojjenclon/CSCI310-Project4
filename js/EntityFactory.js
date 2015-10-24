@@ -19,11 +19,14 @@ EntityFactory = Class({
     player.addComponent(C.ShootDelay);
 
     player.drawable.scene = options.scene;
+
     player.drawable.mesh = new Physijs.BoxMesh(
       new THREE.BoxGeometry(2, 8, 2),
       Physijs.createMaterial(new THREE.MeshBasicMaterial({
         color: 0xffff00
       }), 0.9, 0.1));
+    player.drawable.mesh.entity = player;
+
     player.drawable.mesh.position.copy(options.position);
     //player.drawable.mesh.rotation.copy(options.rotation);
 
@@ -54,6 +57,37 @@ EntityFactory = Class({
     return player;
   },
 
+  makeEnemy: function(options) {
+    var enemy = this.entities.createEntity();
+
+    enemy.addTag("enemy");
+
+    enemy.addComponent(C.Position);
+    enemy.addComponent(C.Velocity);
+    enemy.addComponent(C.Drawable);
+
+    enemy.drawable.scene = options.scene;
+
+    enemy.drawable.mesh = new Physijs.BoxMesh(
+      new THREE.BoxGeometry(10, 10, 10),
+      Physijs.createMaterial(new THREE.MeshPhongMaterial({
+        color: 0x0000ff
+      }), 0.5, 0.6), 0);
+    enemy.drawable.mesh.entity = enemy;
+
+    enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
+    enemy.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet;
+
+    enemy.drawable.mesh.position.copy(options.position);
+    //enemy.drawable.mesh.rotation.copy(options.rotation);
+
+    enemy.drawable.scene.add(enemy.drawable.mesh);
+
+    enemy.position.x = options.position.x;
+    enemy.position.y = options.position.y;
+    enemy.position.z = options.position.z;
+  },
+
   makeBullet: function(options) {
     ResourceManager.instance.loadModel('models/potato.json', function(model) {
       var bullet = this.entities.createEntity();
@@ -66,10 +100,12 @@ EntityFactory = Class({
       bullet.addComponent(C.OneTimeHit);
 
       bullet.drawable.scene = options.scene;
+
       bullet.drawable.mesh = new Physijs.ConvexMesh(
         model.geometry,
         Physijs.createMaterial(model.material, 0.7, 0.01)
       );
+      bullet.drawable.mesh.entity = bullet;
 
       bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
       bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
@@ -84,6 +120,9 @@ EntityFactory = Class({
 
       bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
         if (other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+          other_object.entity.addComponent(C.Hurt);
+          other_object.entity.hurt.originalColor = other_object.material.color;
+
           var curScore = parseInt(Globals.score.innerHTML, 10);
           curScore++;
 

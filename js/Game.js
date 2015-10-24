@@ -100,15 +100,10 @@ Game = Class({
       cameraOffset: new THREE.Vector3(0, 3, 0)
     });
 
-    var m = new Physijs.BoxMesh(
-      new THREE.BoxGeometry(10, 10, 10),
-      Physijs.createMaterial(new THREE.MeshPhongMaterial({
-        color: 0x0000ff
-      }), 0.5, 0.6), 0);
-    m._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
-    m._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet;
-    m.position.set(0, 5, -200);
-    this.scene.add(m);
+    EntityFactory.instance.makeEnemy({
+      scene: this.scene,
+      position: new THREE.Vector3(0, 5, -200)
+    });
 
     /* Setup Systems */
 
@@ -118,6 +113,7 @@ Game = Class({
     this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
     this.systems.push(new CameraFollowSystem(EntityFactory.instance.entities));
     this.systems.push(new ShootDelaySystem(EntityFactory.instance.entities));
+    this.systems.push(new HurtSystem(EntityFactory.instance.entities));
 
     this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
 
