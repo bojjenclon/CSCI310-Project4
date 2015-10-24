@@ -123,10 +123,9 @@ EntityFactory = Class({
           other_object.entity.addComponent(C.Hurt);
           other_object.entity.hurt.originalColor = other_object.material.color;
 
-          var curScore = parseInt(Globals.score.innerHTML, 10);
-          curScore++;
+          Globals.instance.score++;
 
-          Globals.score.innerHTML = curScore;
+          Globals.instance.scoreElement.innerHTML = Globals.instance.score;
 
           bullet.oneTimeHit.alreadyHit.push(other_object.uuid);
         }

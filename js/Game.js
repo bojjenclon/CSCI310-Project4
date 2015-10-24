@@ -135,7 +135,7 @@ Game = Class({
       this.loadingContainer.style.visibility = "hidden";
       this.blocker.style.visibility = "visible";
       this.instructions.style.visibility = "visible";
-      Globals.hudElement.style.display = 'block';
+      Globals.instance.hudElement.style.display = 'block';
       this.crosshair.style.display = 'block';
 
       // ensure the user is at the top of the page

@@ -33,13 +33,13 @@ Physijs.scripts.ammo = './ammo.js';
 var game = null;
 
 function init() {
-  Globals.hudElement = document.getElementById("hud");
-  Globals.scoreElement = document.getElementById("score");
-  Globals.reloadingElement = document.getElementById("reloading");
-  Globals.reloadImg = new SuperGif({
+  Globals.instance.hudElement = document.getElementById("hud");
+  Globals.instance.scoreElement = document.getElementById("score");
+  Globals.instance.reloadingElement = document.getElementById("reloading");
+  Globals.instance.reloadImg = new SuperGif({
     gif: document.getElementById("reloadImg")
   });
-  Globals.reloadImg.load();
+  Globals.instance.reloadImg.load();
 
   var gameOptions = {
     container: document.getElementById("container"),

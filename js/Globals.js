@@ -2,6 +2,7 @@ Globals = Class({
   constructor: function() {
     this.hudElement = null;
     this.scoreElement = null;
+    this.score = 0;
     this.reloadingElement = null;
     this.reloadImg = null;
   }

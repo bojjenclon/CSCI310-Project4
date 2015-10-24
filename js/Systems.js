@@ -51,9 +51,9 @@ PlayerInputSystem = Class({
 
           entity.shootDelay.canShoot = false;
 
-          Globals.reloadImg.move_to(0);
-          Globals.reloadImg.play();
-          Globals.reloadingElement.style.visibility = "visible";
+          Globals.instance.reloadImg.move_to(0);
+          Globals.instance.reloadImg.play();
+          Globals.instance.reloadingElement.style.visibility = "visible";
         }
         else if (MouseController.instance.wasPressed.right) {
           var direction = new THREE.Vector3();
@@ -71,9 +71,9 @@ PlayerInputSystem = Class({
 
           entity.shootDelay.canShoot = false;
 
-          Globals.reloadImg.move_to(0);
-          Globals.reloadImg.play();
-          Globals.reloadingElement.style.visibility = "visible";
+          Globals.instance.reloadImg.move_to(0);
+          Globals.instance.reloadImg.play();
+          Globals.instance.reloadingElement.style.visibility = "visible";
         }
       }
 
@@ -199,8 +199,8 @@ ShootDelaySystem = Class({
           entity.shootDelay.canShoot = true;
           entity.shootDelay.timer = 0;
 
-          Globals.reloadImg.pause();
-          Globals.reloadingElement.style.visibility = "hidden";
+          Globals.instance.reloadImg.pause();
+          Globals.instance.reloadingElement.style.visibility = "hidden";
         }
       }
     });
