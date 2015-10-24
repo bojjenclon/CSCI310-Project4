@@ -7,8 +7,9 @@ Node Requires:
 * [minifyify](https://www.npmjs.com/package/minifyify)
 * [physijs-browserify](https://www.npmjs.com/package/physijs-browserify)
 * [stats.js](https://www.npmjs.com/package/stats.js)
-* [three](https://www.npmjs.com/package/three)
+* [three.js](https://www.npmjs.com/package/three)
 * [tiny-ecs](https://www.npmjs.com/package/tiny-ecs)
+* [Behavior3JS](https://github.com/behavior3/behavior3js)
 
 Other Requirements:
 * [THREEx.KeyboardState](https://github.com/jeromeetienne/threex.keyboardstate)
