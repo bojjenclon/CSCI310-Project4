@@ -243,6 +243,10 @@ Game = Class({
 
           this.blocker.style.display = 'none';
 
+          if (Globals.instance.reloadingElement.style.visibility === 'visible') {
+            Globals.instance.reloadImg.play();
+          }
+
           this.paused = false;
 
         }
@@ -255,6 +259,10 @@ Game = Class({
           this.blocker.style.display = 'box';
 
           this.instructions.style.display = '';
+
+          if (Globals.instance.reloadImg.get_playing()) {
+            Globals.instance.reloadImg.pause();
+          }
 
           this.paused = true;
 
