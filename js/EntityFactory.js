@@ -17,6 +17,7 @@ EntityFactory = Class({
     player.addComponent(C.Drawable);
     player.addComponent(C.CameraFollow);
     player.addComponent(C.ShootDelay);
+    player.addComponent(C.Health);
 
     player.drawable.scene = options.scene;
 
@@ -65,6 +66,7 @@ EntityFactory = Class({
     enemy.addComponent(C.Position);
     enemy.addComponent(C.Velocity);
     enemy.addComponent(C.Drawable);
+    enemy.addComponent(C.Health);
 
     enemy.drawable.scene = options.scene;
 
@@ -122,6 +124,8 @@ EntityFactory = Class({
         if (other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
           other_object.entity.addComponent(C.Hurt);
           other_object.entity.hurt.originalColor = other_object.material.color;
+
+          other_object.entity.health.hp--;
 
           Globals.instance.score++;
 

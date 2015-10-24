@@ -7,6 +7,7 @@ module.exports = {
   CameraFollow: require('./components/CameraFollow.js'),
   ShootDelay: require('./components/ShootDelay.js'),
   OneTimeHit: require('./components/OneTimeHit.js'),
-  Hurt: require('./components/Hurt.js')
+  Hurt: require('./components/Hurt.js'),
+  Health: require('./components/Health.js')
 };
 

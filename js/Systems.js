@@ -230,6 +230,26 @@ HurtSystem = Class({
   }
 });
 
+DeathSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var mortals = this.entities.queryComponents([C.Health]);
+
+    mortals.forEach(function(entity) {
+      if (entity.health.hp <= 0) {
+        if (entity.hasComponent(C.Drawable)) {
+          entity.drawable.scene.remove(entity.drawable.mesh);
+        }
+
+        entity.remove();
+      }
+    });
+  }
+});
+
 PhysicsUpdateSystem = Class({
   constructor: function(entities) {
     this.entities = entities;
