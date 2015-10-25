@@ -79,16 +79,11 @@ Game = Class({
     var dirLight = new THREE.DirectionalLight(0xdcdcdc, 0.5);
     this.scene.add(dirLight);
 
-    var ground = new Physijs.BoxMesh(
-      new THREE.BoxGeometry(500, 1, 500),
-      new THREE.MeshBasicMaterial({
-        color: 0x00dd00
-      }), 0);
-    ground._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
-    ground._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
-    this.scene.add(ground);
-
     /* Create Entities */
+
+    EntityFactory.instance.makeGround({
+      scene: this.scene
+    });
 
     this.player = EntityFactory.instance.makePlayer({
       scene: this.scene,

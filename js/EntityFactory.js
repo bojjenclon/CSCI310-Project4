@@ -12,6 +12,7 @@ EntityFactory = Class({
 
     player.addTag("player");
 
+    player.addComponent(C.Identifier);
     player.addComponent(C.Position);
     player.addComponent(C.Velocity);
     player.addComponent(C.Jump);
@@ -19,6 +20,8 @@ EntityFactory = Class({
     player.addComponent(C.CameraFollow);
     player.addComponent(C.ShootDelay);
     player.addComponent(C.Health);
+
+    player.identifier.type = Globals.ENTITY_TYPES.player;
 
     player.drawable.scene = options.scene;
 
@@ -41,11 +44,11 @@ EntityFactory = Class({
     player.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 0, 0));
 
     player.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-      if (contact_normal.y < 0 && other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.obstacle) {
+      if (contact_normal.y < 0 && other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
         player.jump.canJump = true;
       }
 
-      if (other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy && player.hasComponent(C.Hurt) === false) {
+      if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy && player.hasComponent(C.Hurt) === false) {
         player.addComponent(C.Hurt);
         player.hurt.originalColor = player.drawable.mesh.material.color;
 
@@ -72,11 +75,14 @@ EntityFactory = Class({
 
     enemy.addTag("enemy");
 
+    enemy.addComponent(C.Identifier);
     enemy.addComponent(C.Position);
     enemy.addComponent(C.Velocity);
     enemy.addComponent(C.Drawable);
     enemy.addComponent(C.Health);
     enemy.addComponent(C.AI);
+
+    enemy.identifier.type = Globals.ENTITY_TYPES.enemy;
 
     enemy.drawable.scene = options.scene;
 
@@ -236,10 +242,14 @@ EntityFactory = Class({
 
       bullet.addTag("bullet");
 
+      bullet.addComponent(C.Identifier);
       bullet.addComponent(C.Position);
       bullet.addComponent(C.Drawable);
+      bullet.addComponent(C.Bullet);
       bullet.addComponent(C.Expirable);
       bullet.addComponent(C.OneTimeHit);
+
+      bullet.identifier.type = Globals.ENTITY_TYPES.bullet;
 
       bullet.drawable.scene = options.scene;
 
@@ -261,18 +271,17 @@ EntityFactory = Class({
       bullet.drawable.mesh.setDamping(0.1, 0);
 
       bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-        if (other_object._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy && bullet.bullet.touchedGround === false && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
           other_object.entity.addComponent(C.Hurt);
           other_object.entity.hurt.originalColor = other_object.material.color;
 
           other_object.entity.health.hp--;
           other_object.entity.health.changed = true;
 
-          /*Globals.instance.score++;
-
-          Globals.instance.scoreElement.innerHTML = Globals.instance.score;*/
-
           bullet.oneTimeHit.alreadyHit.push(other_object.uuid);
+        }
+        else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
+          bullet.bullet.touchedGround = true;
         }
       }.bind(this));
 
@@ -290,6 +299,30 @@ EntityFactory = Class({
 
       bullet.expirable.maxAge = 5;
     }.bind(this));
+  },
+
+  makeGround: function(options) {
+    var ground = this.entities.createEntity();
+
+    ground.addComponent(C.Identifier);
+    ground.addComponent(C.Position);
+    ground.addComponent(C.Drawable);
+
+    ground.identifier.type = Globals.ENTITY_TYPES.ground;
+
+    ground.drawable.scene = options.scene;
+
+    ground.drawable.mesh = new Physijs.BoxMesh(
+      new THREE.BoxGeometry(500, 1, 500),
+      new THREE.MeshBasicMaterial({
+        color: 0x00dd00
+      }), 0);
+    ground.drawable.mesh.entity = ground;
+
+    ground.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
+    ground.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+
+    ground.drawable.scene.add(ground.drawable.mesh);
   }
 }, {
   statics: {

@@ -21,6 +21,16 @@ Globals = Class({
         Globals._instance = new Globals();
       }
       return Globals._instance;
+    },
+
+    ENTITY_TYPES: {
+      player: 0,
+      enemy: 1,
+
+      ground: 2,
+      obstacle: 3,
+
+      bullet: 4
     }
   }
 });

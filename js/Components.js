@@ -1,4 +1,5 @@
 module.exports = {
+  Identifier: require('./components/Identifier.js'),
   Position: require('./components/Position.js'),
   Velocity: require('./components/Velocity.js'),
   Jump: require('./components/Jump.js'),
@@ -9,6 +10,7 @@ module.exports = {
   OneTimeHit: require('./components/OneTimeHit.js'),
   Hurt: require('./components/Hurt.js'),
   Health: require('./components/Health.js'),
+  Bullet: require('./components/Bullet.js'),
   AI: require('./components/Ai.js')
 };
 
