@@ -30,9 +30,17 @@ PlayerInputSystem = Class({
       }
 
       if (this.keyboard.pressed("space") && entity.jump.canJump) {
-        dv.y = 1500;
+        dv.y = PlayerInputSystem.JUMP_FORCE;
         entity.jump.canJump = false;
       }
+
+      dv = dv.applyMatrix4(entity.velocity.rotationMatrix);
+
+      velocity.add(dv);
+
+      entity.velocity.x = velocity.x;
+      entity.velocity.y = velocity.y;
+      entity.velocity.z = velocity.z;
 
       if (entity.shootDelay.canShoot) {
         if (MouseController.instance.wasPressed.left) {
@@ -46,7 +54,7 @@ PlayerInputSystem = Class({
             scale: new THREE.Vector3(0.5, 0.5, 0.5),
             direction: direction,
             rotationMatrix: entity.velocity.rotationMatrix,
-            velocity: 2000
+            velocity: 35
           });
 
           entity.shootDelay.canShoot = false;
@@ -66,7 +74,7 @@ PlayerInputSystem = Class({
             scale: new THREE.Vector3(0.5, 0.5, 0.5),
             direction: direction,
             rotationMatrix: entity.velocity.rotationMatrix,
-            velocity: 200
+            velocity: 6
           });
 
           entity.shootDelay.canShoot = false;
@@ -76,19 +84,12 @@ PlayerInputSystem = Class({
           Globals.instance.reloadingElement.style.visibility = "visible";
         }
       }
-
-      dv = dv.applyMatrix4(entity.velocity.rotationMatrix);
-
-      velocity.add(dv);
-
-      entity.velocity.x = velocity.x;
-      entity.velocity.y = velocity.y;
-      entity.velocity.z = velocity.z;
     }.bind(this));
   }
 }, {
   statics: {
-    MOVE_SPEED: 25
+    MOVE_SPEED: 50,
+    JUMP_FORCE: 2500
   }
 });
 

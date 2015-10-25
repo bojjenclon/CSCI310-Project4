@@ -55,7 +55,7 @@ Game = Class({
 
     // Create a new Three.js scene
     this.scene = new Physijs.Scene();
-    this.scene.setGravity(new THREE.Vector3(0, -9.8 * 3, 0));
+    this.scene.setGravity(new THREE.Vector3(0, -32, 0));
 
     // Put in a camera
     var aspectRatio = window.innerWidth / window.innerHeight;
@@ -153,24 +153,25 @@ Game = Class({
     requestAnimationFrame(this.update.bind(this));
 
     var time = performance.now();
-    Globals.instance.dt = (time - this.prevTime) / 1000;
+    var dt = (time - this.prevTime) / 1000;
+    Globals.instance.dt = dt;
 
     if (!this.paused) {
-      if (Globals.instance.dt > 0.5) {
-        Globals.instance.dt = 0.5;
+      if (dt > 0.5) {
+        dt = 0.5;
       }
 
       this.systems.forEach(function(system) {
-        system.update(Globals.instance.dt);
+        system.update(dt);
       });
 
       this.scene.simulate();
 
       this.postPhysicsSystems.forEach(function(system) {
-        system.update(Globals.instance.dt);
+        system.update(dt);
       });
 
-      MouseController.instance.update(Globals.instance.dt);
+      MouseController.instance.update(dt);
     }
 
     this.renderer.render(this.scene, this.camera);

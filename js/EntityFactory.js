@@ -29,7 +29,7 @@ EntityFactory = Class({
       new THREE.BoxGeometry(2, 8, 2),
       Physijs.createMaterial(new THREE.MeshBasicMaterial({
         color: 0xffff00
-      }), 0.9, 0.1));
+      }), 0.9, 0.01), 73);
     player.drawable.mesh.entity = player;
 
     player.drawable.mesh.position.copy(options.position);
@@ -90,7 +90,7 @@ EntityFactory = Class({
       new THREE.BoxGeometry(10, 10, 10),
       Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x0000ff
-      }), 0.5, 0.6));
+      }), 0.9, 0.1), 81);
     enemy.drawable.mesh.entity = enemy;
 
     enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
@@ -100,6 +100,8 @@ EntityFactory = Class({
     //enemy.drawable.mesh.rotation.copy(options.rotation);
 
     enemy.drawable.scene.add(enemy.drawable.mesh);
+
+    enemy.drawable.mesh.setDamping(0.99, 0);
 
     enemy.position.x = options.position.x;
     enemy.position.y = options.position.y;
@@ -154,17 +156,17 @@ EntityFactory = Class({
 
       var angle = forward.angleTo(posDif);
 
-      if (angle < 0.01) {
+      if (angle <= 0.02) {
         return b3.SUCCESS;
       }
 
-      var m = new THREE.Matrix4();
-      m.lookAt(followingPos, parentPos, new THREE.Vector3(0, 1, 0));
+      var lookAtMatrix = new THREE.Matrix4();
+      lookAtMatrix.lookAt(followingPos, parentPos, new THREE.Vector3(0, 1, 0));
 
       var parentRotation = new THREE.Quaternion().setFromEuler(tick.target.drawable.mesh.rotation);
-      var targetRotation = new THREE.Quaternion().setFromRotationMatrix(m);
+      var targetRotation = new THREE.Quaternion().setFromRotationMatrix(lookAtMatrix);
 
-      var str = Math.min(Globals.instance.dt * 2, 5);
+      var str = Math.min(3 * Globals.instance.dt, 5);
 
       parentRotation.slerp(targetRotation, str);
 
@@ -207,7 +209,10 @@ EntityFactory = Class({
       difference.subVectors(followingPos, parentPos);
 
       var normal = difference.normalize();
-      var velocity = new THREE.Vector3(200 * normal.x, 0, 200 * normal.z);
+      var velocity = new THREE.Vector3(tick.target.velocity.x, tick.target.velocity.y, tick.target.velocity.z);
+      var dv = new THREE.Vector3(EntityFactory.MOVE_SPEED.enemy * normal.x, 0, EntityFactory.MOVE_SPEED.enemy * normal.z);
+
+      velocity.add(dv);
 
       tick.target.velocity.x = velocity.x;
       tick.target.velocity.y = velocity.y;
@@ -255,8 +260,8 @@ EntityFactory = Class({
 
       bullet.drawable.mesh = new Physijs.ConvexMesh(
         model.geometry,
-        Physijs.createMaterial(model.material, 0.7, 0.01)
-      );
+        Physijs.createMaterial(model.material, 0.7, 0.01),
+        0.3);
       bullet.drawable.mesh.entity = bullet;
 
       bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
@@ -342,6 +347,10 @@ EntityFactory = Class({
 
       playerBullet: 1 << 4,
       enemyBullet: 1 << 5
+    },
+
+    MOVE_SPEED: {
+      enemy: 70
     }
   }
 });
