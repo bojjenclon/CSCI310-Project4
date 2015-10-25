@@ -54,7 +54,8 @@ PlayerInputSystem = Class({
             scale: new THREE.Vector3(0.5, 0.5, 0.5),
             direction: direction,
             rotationMatrix: entity.velocity.rotationMatrix,
-            velocity: 35
+            velocity: 35,
+            owner: 'player'
           });
 
           entity.shootDelay.canShoot = false;
@@ -74,7 +75,8 @@ PlayerInputSystem = Class({
             scale: new THREE.Vector3(0.5, 0.5, 0.5),
             direction: direction,
             rotationMatrix: entity.velocity.rotationMatrix,
-            velocity: 6
+            velocity: 6,
+            owner: 'player'
           });
 
           entity.shootDelay.canShoot = false;

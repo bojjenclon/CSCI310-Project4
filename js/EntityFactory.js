@@ -80,6 +80,7 @@ EntityFactory = Class({
     enemy.addComponent(C.Velocity);
     enemy.addComponent(C.Drawable);
     enemy.addComponent(C.Health);
+    enemy.addComponent(C.ShootDelay);
     enemy.addComponent(C.AI);
 
     enemy.identifier.type = Globals.ENTITY_TYPES.enemy;
@@ -176,6 +177,34 @@ EntityFactory = Class({
       return b3.RUNNING;
     };
 
+    var RandomChildNode = b3.Class(b3.Composite);
+    RandomChildNode.prototype.name = 'RandomChildNode';
+
+    RandomChildNode.prototype.__Composite_initialize = RandomChildNode.prototype.initialize;
+    RandomChildNode.prototype.initialize = function(settings) {
+      settings = settings || {};
+
+      this.__Composite_initialize(settings);
+
+      this.chance = settings.chance;
+    };
+
+    RandomChildNode.prototype.tick = function(tick) {
+      //var chance = 1 / this.children.length;
+
+      for (var i = 0; i < this.children.length; i++) {
+        if (Math.random() <= this.chance[i]) {
+          var status = this.children[i]._execute(tick);
+
+          if (status !== b3.SUCCESS) {
+            return status;
+          }
+        }
+      }
+
+      return b3.SUCCESS;
+    };
+
     var FollowNode = b3.Class(b3.Action);
     FollowNode.prototype.name = 'FollowNode';
     FollowNode.prototype.parameters = {
@@ -221,6 +250,59 @@ EntityFactory = Class({
       return b3.RUNNING;
     };
 
+    var ShootNode = b3.Class(b3.Action);
+    ShootNode.prototype.name = 'ShootNode';
+    ShootNode.prototype.parameters = {
+      'shootingAt': null
+    };
+
+    ShootNode.prototype.__Action_initialize = ShootNode.prototype.initialize;
+    ShootNode.prototype.initialize = function(settings) {
+      settings = settings || {};
+
+      this.__Action_initialize();
+
+      this.shootingAt = settings.shootingAt;
+    };
+
+    ShootNode.prototype.tick = function(tick) {
+      if (this.shootingAt._manager === null || this.shootingAt._manager === undefined) {
+        return b3.FAILURE;
+      }
+      else if (tick.target.shootDelay.canShoot === false) {
+        return b3.FAILURE;
+      }
+
+      var direction = new THREE.Vector3(0, 0, 1);
+      var rotation = new THREE.Euler(0, 0, 0, "YXZ");
+      rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
+
+      var forward = new THREE.Vector3();
+      forward.copy(direction).applyEuler(rotation);
+
+      var parentPos = tick.target.drawable.mesh.position.clone();
+      var followingPos = this.shootingAt.drawable.mesh.position.clone();
+
+      var distance = parentPos.distanceTo(followingPos);
+
+      forward.y += distance / 800;
+
+      EntityFactory.instance.makeBullet({
+        scene: tick.target.drawable.scene,
+        position: tick.target.drawable.mesh.position.clone(),
+        rotation: tick.target.drawable.mesh.rotation.clone(),
+        scale: new THREE.Vector3(0.5, 0.5, 0.5),
+        direction: forward,
+        rotationMatrix: tick.target.velocity.rotationMatrix,
+        velocity: 35,
+        owner: 'enemy'
+      });
+
+      tick.target.shootDelay.canShoot = false;
+
+      return b3.SUCCESS;
+    };
+
     enemy.ai.tree = new b3.BehaviorTree();
     enemy.ai.tree.root = new b3.Sequence({
       children: [
@@ -229,8 +311,19 @@ EntityFactory = Class({
             new FaceNode({
               facing: options.aiTarget
             }),
-            new FollowNode({
-              following: options.aiTarget
+            new RandomChildNode({
+              children: [
+                new FollowNode({
+                  following: options.aiTarget
+                }),
+                new ShootNode({
+                  shootingAt: options.aiTarget
+                })
+              ],
+              chance: [
+                0.9,
+                0.1
+              ]
             })
           ]
         })
@@ -255,6 +348,7 @@ EntityFactory = Class({
       bullet.addComponent(C.OneTimeHit);
 
       bullet.identifier.type = Globals.ENTITY_TYPES.bullet;
+      bullet.bullet.owner = options.owner;
 
       bullet.drawable.scene = options.scene;
 
@@ -264,8 +358,14 @@ EntityFactory = Class({
         0.3);
       bullet.drawable.mesh.entity = bullet;
 
-      bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
-      bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+      if (options.owner === 'player') {
+        bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
+        bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+      }
+      else {
+        bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
+        bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+      }
 
       bullet.drawable.mesh.position.copy(options.position);
       bullet.drawable.mesh.rotation.copy(options.rotation);
@@ -276,7 +376,10 @@ EntityFactory = Class({
       bullet.drawable.mesh.setDamping(0.1, 0);
 
       bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-        if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy && bullet.bullet.touchedGround === false && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        var hitPlayer = bullet.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
+        var hitEnemy = bullet.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
+
+        if ((hitPlayer || hitEnemy) && bullet.bullet.touchedGround === false && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
           other_object.entity.addComponent(C.Hurt);
           other_object.entity.hurt.originalColor = other_object.material.color;
 
