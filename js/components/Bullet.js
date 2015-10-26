@@ -1,7 +1,7 @@
 module.exports = Bullet;
 
 function Bullet() {
-  this.touchedGround = false;
+  this.isHot = true;
   this.owner = null;
 }
 

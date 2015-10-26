@@ -1,1 +1,1 @@
-beefy main.js --live
+beefy main.js

@@ -305,7 +305,7 @@ DeathSystem = Class({
       if (entity.health.hp <= 0) {
         if (entity.hasComponent(C.Drawable)) {
           if (entity.drawable.mesh._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy) {
-            Globals.instance.score++;
+            Globals.instance.score += 10;
 
             Globals.instance.scoreElement.innerHTML = Globals.instance.score;
           }

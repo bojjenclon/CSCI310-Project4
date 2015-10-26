@@ -65,7 +65,7 @@ EntityFactory = Class({
     player.cameraFollow.object = options.controlsObject;
     player.cameraFollow.offset = options.cameraOffset;
 
-    player.shootDelay.delayTheshold = 0.5;
+    player.shootDelay.delayTheshold = 1.5;
 
     return player;
   },
@@ -115,6 +115,8 @@ EntityFactory = Class({
       }));
     enemy.health.healthBar.position.set(0, 7, 0);
     enemy.drawable.mesh.add(enemy.health.healthBar);
+
+    enemy.shootDelay.delayTheshold = 1.5;
 
     var FaceNode = b3.Class(b3.Action);
     FaceNode.prototype.name = 'FaceNode';
@@ -376,10 +378,14 @@ EntityFactory = Class({
       bullet.drawable.mesh.setDamping(0.1, 0);
 
       bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+        if (bullet.bullet.isHot === false) {
+          return;
+        }
+
         var hitPlayer = bullet.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
         var hitEnemy = bullet.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
-        if ((hitPlayer || hitEnemy) && bullet.bullet.touchedGround === false && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        if ((hitPlayer || hitEnemy) && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
           other_object.entity.addComponent(C.Hurt);
           other_object.entity.hurt.originalColor = other_object.material.color;
 
@@ -391,6 +397,15 @@ EntityFactory = Class({
         else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
           bullet.bullet.touchedGround = true;
         }
+        else if (bullet.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+          Globals.instance.score += 5;
+
+          Globals.instance.scoreElement.innerHTML = Globals.instance.score;
+
+          bullet.oneTimeHit.alreadyHit.push(other_object.uuid);
+        }
+
+        bullet.bullet.isHot = false;
       }.bind(this));
 
       if (options.position) {
