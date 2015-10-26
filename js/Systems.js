@@ -141,20 +141,6 @@ ExpirableSystem = Class({
   }
 });
 
-CameraRotationSystem = Class({
-  constructor: function(entities) {
-    this.entities = entities;
-  },
-
-  update: function(dt) {
-    var follows = this.entities.queryComponents([C.CameraFollow, C.Velocity]);
-
-    follows.forEach(function(entity) {
-      entity.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.object.matrix);
-    });
-  }
-});
-
 CameraFollowSystem = Class({
   constructor: function(entities) {
     this.entities = entities;
@@ -353,6 +339,8 @@ PhysicsUpdateSystem = Class({
       entity.velocity.x = entity.drawable.mesh.getLinearVelocity().x;
       entity.velocity.y = entity.drawable.mesh.getLinearVelocity().y;
       entity.velocity.z = entity.drawable.mesh.getLinearVelocity().z;
+
+      entity.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(entity.drawable.mesh.matrix);
     });
   }
 });

@@ -1,0 +1,145 @@
+body, html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: arial;
+}
+
+#container {
+  width: 100%;
+  height: 100%;
+}
+
+#blocker {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  visibility: hidden;
+}
+
+#instructions {
+  width: 100%;
+  height: 100%;
+  display: -webkit-box;
+  display: -moz-box;
+  display: box;
+  -webkit-box-orient: horizontal;
+  -moz-box-orient: horizontal;
+  box-orient: horizontal;
+  -webkit-box-pack: center;
+  -moz-box-pack: center;
+  box-pack: center;
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  box-align: center;
+  color: #ffffff;
+  text-align: center;
+  cursor: pointer;
+  visibility: hidden;
+}
+
+#loadingContainer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #221122;
+}
+
+#loadingText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  font-family: "Courier New", Courier, monospace;
+  font-size: 3em;
+  color: #ffcc00;
+}
+
+#github {
+  position: absolute;
+  top: 20px;
+  right: 10px;
+  width: 200px;
+  height: 70px;
+  color: #dddddd;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#github img {
+  vertical-align: middle;
+}
+
+#londo {
+  position: absolute;
+  bottom: 20px;
+  right: 10px;
+  width: 200px;
+  height: 70px;
+  color: #dddddd;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#londo img {
+  vertical-align: middle;
+}
+
+#hud {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 120px;
+  height: 70px;
+  display: none;
+  opacity: 70%;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px black!important;
+  background-color: #9E9E9E;
+  border: 4px ridge #808080;
+  border-radius: 25px;
+  padding: 15px;
+}
+
+#hud p {
+  margin-top: 0em;
+  margin-bottom: 0em;
+}
+
+#hud #health {
+  color: #00ff00;
+}
+
+#hud #reloading {
+  height: 64px;
+  visibility: hidden;
+}
+
+#hud #reloading .jsgif canvas {
+  vertical-align: middle;
+}
+
+#crosshair {
+  width: 100px;
+  height: 100px;
+  background-image: url('gfx/crosshair.png');
+  background-repeat: no-repeat;
+  position: absolute;
+  display: none;
+  opacity: 0.7;
+}
+
+#overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  opacity: 0.5;
+}
+

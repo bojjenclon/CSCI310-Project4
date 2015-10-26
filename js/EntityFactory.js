@@ -29,7 +29,7 @@ EntityFactory = Class({
       new THREE.BoxGeometry(2, 8, 2),
       Physijs.createMaterial(new THREE.MeshBasicMaterial({
         color: 0xffff00
-      }), 0.9, 0.01), 73);
+      }), 0.9, 0.01), EntityFactory.MASS.player);
     player.drawable.mesh.entity = player;
 
     player.drawable.mesh.position.copy(options.position);
@@ -61,6 +61,8 @@ EntityFactory = Class({
     player.position.y = options.position.y;
     player.position.z = options.position.z;
 
+    player.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(player.drawable.mesh.matrix);
+
     player.cameraFollow.controls = options.controls;
     player.cameraFollow.object = options.controlsObject;
     player.cameraFollow.offset = options.cameraOffset;
@@ -91,11 +93,11 @@ EntityFactory = Class({
       new THREE.BoxGeometry(10, 10, 10),
       Physijs.createMaterial(new THREE.MeshPhongMaterial({
         color: 0x0000ff
-      }), 0.9, 0.1), 81);
+      }), 0.9, 0.1), EntityFactory.MASS.enemy);
     enemy.drawable.mesh.entity = enemy;
 
     enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
-    enemy.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet;
+    enemy.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
 
     enemy.drawable.mesh.position.copy(options.position);
     //enemy.drawable.mesh.rotation.copy(options.rotation);
@@ -107,6 +109,8 @@ EntityFactory = Class({
     enemy.position.x = options.position.x;
     enemy.position.y = options.position.y;
     enemy.position.z = options.position.z;
+
+    enemy.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(enemy.drawable.mesh.matrix);
 
     enemy.health.healthBar = new THREE.Mesh(
       new THREE.BoxGeometry(10, 1.5, 0.5),
@@ -265,6 +269,7 @@ EntityFactory = Class({
       this.__Action_initialize();
 
       this.shootingAt = settings.shootingAt;
+      this.bulletSpeed = settings.bulletSpeed;
     };
 
     ShootNode.prototype.tick = function(tick) {
@@ -285,18 +290,34 @@ EntityFactory = Class({
       var parentPos = tick.target.drawable.mesh.position.clone();
       var followingPos = this.shootingAt.drawable.mesh.position.clone();
 
-      var distance = parentPos.distanceTo(followingPos);
+      var followingVel = new THREE.Vector3(this.shootingAt.velocity.x, this.shootingAt.velocity.y, this.shootingAt.velocity.z);
+      followingVel.multiplyScalar(Globals.instance.dt);
+      var predictedPos = followingPos.clone();
+      predictedPos.add(followingVel);
 
-      forward.y += distance / 800;
+      var distance = parentPos.distanceTo(predictedPos);
+
+      var velocity = this.bulletSpeed;
+
+      // I have no clue why this works
+      //var velOffset = (Math.PI / 2) - (velocity / 250);
+      //var velOffset = 1.3 + (velocity / 1000);
+      var velOffset = 1 + (velocity / 100);
+      forward.y += distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
+
+      var spawnLocation = parentPos.clone();
+      var spawnOffset = new THREE.Vector3(0, 0, 10);
+      spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
+      spawnLocation.add(spawnOffset);
 
       EntityFactory.instance.makeBullet({
         scene: tick.target.drawable.scene,
-        position: tick.target.drawable.mesh.position.clone(),
+        position: spawnLocation,
         rotation: tick.target.drawable.mesh.rotation.clone(),
         scale: new THREE.Vector3(0.5, 0.5, 0.5),
         direction: forward,
         rotationMatrix: tick.target.velocity.rotationMatrix,
-        velocity: 35,
+        velocity: velocity,
         owner: 'enemy'
       });
 
@@ -319,7 +340,8 @@ EntityFactory = Class({
                   following: options.aiTarget
                 }),
                 new ShootNode({
-                  shootingAt: options.aiTarget
+                  shootingAt: options.aiTarget,
+                  bulletSpeed: options.bulletSpeed
                 })
               ],
               chance: [
@@ -362,12 +384,14 @@ EntityFactory = Class({
 
       if (options.owner === 'player') {
         bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
-        bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+        //bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
       }
       else {
         bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
-        bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+        //bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
       }
+
+      bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
 
       bullet.drawable.mesh.position.copy(options.position);
       bullet.drawable.mesh.rotation.copy(options.rotation);
@@ -436,7 +460,7 @@ EntityFactory = Class({
     ground.drawable.scene = options.scene;
 
     ground.drawable.mesh = new Physijs.BoxMesh(
-      new THREE.BoxGeometry(500, 1, 500),
+      new THREE.BoxGeometry(options.width, 1, options.height),
       new THREE.MeshBasicMaterial({
         color: 0x00dd00
       }), 0);
@@ -469,6 +493,12 @@ EntityFactory = Class({
 
     MOVE_SPEED: {
       enemy: 70
+    },
+
+    MASS: {
+      player: 73,
+      enemy: 81,
+      bullet: 0.3
     }
   }
 });

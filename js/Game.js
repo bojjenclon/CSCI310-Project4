@@ -24,6 +24,8 @@ Game = Class({
 
     this.modelsToPreload = options.modelsToPreload;
     this.percentModelsLoaded = 0;
+
+    this.systemsDelay = 0;
   },
 
   start: function(runImmediately) {
@@ -82,7 +84,9 @@ Game = Class({
     /* Create Entities */
 
     EntityFactory.instance.makeGround({
-      scene: this.scene
+      scene: this.scene,
+      width: 2000,
+      height: 2000
     });
 
     this.player = EntityFactory.instance.makePlayer({
@@ -96,12 +100,19 @@ Game = Class({
     EntityFactory.instance.makeEnemy({
       scene: this.scene,
       position: new THREE.Vector3(0, 10, -200),
-      aiTarget: this.player
+      aiTarget: this.player,
+      bulletSpeed: Math.random() * (60 - 15) + 15
+    });
+
+    EntityFactory.instance.makeEnemy({
+      scene: this.scene,
+      position: new THREE.Vector3(-100, 10, -150),
+      aiTarget: this.player,
+      bulletSpeed: Math.random() * (60 - 15) + 15
     });
 
     /* Setup Systems */
 
-    this.systems.push(new CameraRotationSystem(EntityFactory.instance.entities));
     this.systems.push(new PlayerInputSystem(EntityFactory.instance.entities));
     this.systems.push(new AISystem(EntityFactory.instance.entities));
     this.systems.push(new MovementSystem(EntityFactory.instance.entities));
