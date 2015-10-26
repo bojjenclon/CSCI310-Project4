@@ -8,6 +8,8 @@ require('./RequestAnimationFrame.js');
 require('./rubbable.js');
 global.SuperGif = require('./libgif.js');
 
+global.Utils = require('./js/Utils.js');
+
 require('./js/Game.js');
 require('./js/Globals.js');
 require('./js/ResourceManager.js');

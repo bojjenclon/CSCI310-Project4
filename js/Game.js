@@ -42,7 +42,8 @@ Game = Class({
       antialias: true
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor(0xffffff, 1);
+    //this.renderer.setClearColor(0xffffff, 1);
+    this.renderer.setClearColor(0xbc00bc, 1);
     this.container.appendChild(this.renderer.domElement);
 
     /* Stats.js Setup */
@@ -123,6 +124,8 @@ Game = Class({
     this.systems.push(new PlayerHealthSystem(EntityFactory.instance.entities));
     this.systems.push(new HealthBarSystem(EntityFactory.instance.entities));
     this.systems.push(new DeathSystem(EntityFactory.instance.entities));
+    this.systems.push(new SteamRemovalSystem(EntityFactory.instance.entities));
+    this.systems.push(new SteamUpdateSystem(EntityFactory.instance.entities));
 
     this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
 

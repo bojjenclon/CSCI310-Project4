@@ -323,6 +323,50 @@ AISystem = Class({
   }
 });
 
+SteamUpdateSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var steaming = this.entities.queryComponents([C.Steaming]);
+
+    steaming.forEach(function(entity) {
+      var particles = entity.steaming.particles;
+
+      var particleCount = particles.vertices.length;
+      while (particleCount--) {
+        var particle = particles.vertices[particleCount];
+        particle.y += dt * 50;
+
+        if (particle.y >= 5 + Utils.randomRange(-2, 4)) {
+          particle.y = Math.random();
+          particle.x = Math.random() * Utils.randomRange(-2, 2);
+          particle.z = Math.random() * Utils.randomRange(-2, 2);
+        }
+      }
+
+      particles.verticesNeedUpdate = true;
+    });
+  }
+});
+
+SteamRemovalSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var steaming = this.entities.queryComponents([C.Steaming, C.Bullet, C.Drawable]);
+
+    steaming.forEach(function(entity) {
+      if (entity.bullet.isHot === false) {
+        entity.drawable.mesh.remove(entity.steaming.container);
+      }
+    });
+  }
+});
+
 PhysicsUpdateSystem = Class({
   constructor: function(entities) {
     this.entities = entities;

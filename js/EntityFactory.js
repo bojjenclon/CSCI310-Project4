@@ -370,6 +370,7 @@ EntityFactory = Class({
       bullet.addComponent(C.Bullet);
       bullet.addComponent(C.Expirable);
       bullet.addComponent(C.OneTimeHit);
+      bullet.addComponent(C.Steaming);
 
       bullet.identifier.type = Globals.ENTITY_TYPES.bullet;
       bullet.bullet.owner = options.owner;
@@ -378,17 +379,20 @@ EntityFactory = Class({
 
       bullet.drawable.mesh = new Physijs.ConvexMesh(
         model.geometry,
-        Physijs.createMaterial(model.material, 0.7, 0.01),
+        Physijs.createMaterial(model.material.clone(), 0.7, 0.01),
         0.3);
       bullet.drawable.mesh.entity = bullet;
 
+      // bullets are "hot" when created, so tint them red
+      bullet.drawable.mesh.material.materials.forEach(function(mat) {
+        mat.color.setHex(0xE34D4D);
+      });
+
       if (options.owner === 'player') {
         bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
-        //bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
       }
       else {
         bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
-        //bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
       }
 
       bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
@@ -430,6 +434,11 @@ EntityFactory = Class({
         }
 
         bullet.bullet.isHot = false;
+
+        // the bullet is now "cold," so tint it blue
+        bullet.drawable.mesh.material.materials.forEach(function(mat) {
+          mat.color.setHex(0x45B7DE);
+        });
       }.bind(this));
 
       if (options.position) {
@@ -440,11 +449,36 @@ EntityFactory = Class({
 
       var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
       vel.multiply(options.direction);
-      //var vel = new THREE.Vector3(0, 0, -options.velocity).applyMatrix4(options.rotationMatrix);
       bullet.drawable.mesh.applyCentralImpulse(vel);
-      //console.log(vel, options.direction, options.position);
 
-      bullet.expirable.maxAge = 5;
+      bullet.expirable.maxAge = 6;
+
+      bullet.steaming.parent = bullet.drawable.mesh;
+      bullet.steaming.particles = new THREE.Geometry();
+      for (var i = 0; i < 25; i++) {
+        var particle = new THREE.Vector3(
+          Math.random() * Utils.randomRange(-2, 2),
+          Math.random() * 20,
+          Math.random() * Utils.randomRange(-2, 2));
+        bullet.steaming.particles.vertices.push(particle);
+      }
+
+      var smokeTexture = ResourceManager.instance.getTexture('./../gfx/smoketex.jpg');
+      var smokeMaterial = new THREE.PointCloudMaterial({
+        map: smokeTexture,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        size: 2,
+        color: 0x111111
+      });
+
+      bullet.steaming.system = new THREE.PointCloud(bullet.steaming.particles, smokeMaterial);
+      bullet.steaming.system.sortParticles = true;
+
+      bullet.steaming.container = new THREE.Gyroscope();
+      bullet.steaming.container.add(bullet.steaming.system);
+      bullet.drawable.mesh.add(bullet.steaming.container);
     }.bind(this));
   },
 

@@ -11,6 +11,7 @@ module.exports = {
   Hurt: require('./components/Hurt.js'),
   Health: require('./components/Health.js'),
   Bullet: require('./components/Bullet.js'),
-  AI: require('./components/Ai.js')
+  AI: require('./components/Ai.js'),
+  Steaming: require('./components/Steaming.js')
 };
 
