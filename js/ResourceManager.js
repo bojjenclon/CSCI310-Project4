@@ -2,6 +2,13 @@ Model = Class({
   constructor: function(options) {
     this.geometry = options.geometry;
     this.material = options.material;
+  },
+
+  clone: function() {
+    return new Model({
+      geometry: this.geometry.clone(),
+      material: this.material.clone()
+    });
   }
 });
 

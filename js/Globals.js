@@ -23,6 +23,8 @@ Globals = Class({
       return Globals._instance;
     },
 
+    DIR: "./..",
+
     ENTITY_TYPES: {
       player: 0,
       enemy: 1,

@@ -20,6 +20,7 @@ EntityFactory = Class({
     player.addComponent(C.CameraFollow);
     player.addComponent(C.ShootDelay);
     player.addComponent(C.Health);
+    player.addComponent(C.Gun);
 
     player.identifier.type = Globals.ENTITY_TYPES.player;
 
@@ -68,6 +69,16 @@ EntityFactory = Class({
     player.cameraFollow.offset = options.cameraOffset;
 
     player.shootDelay.delayTheshold = 1.5;
+
+    this.makeGun({
+      parent: player.drawable.mesh,
+      cameraControls: options.controls,
+      offset: new THREE.Vector3(1.5, 1, 0),
+      callback: function(gun) {
+        player.gun.entity = gun;
+        player.gun.mesh = gun.drawable.mesh;
+      }
+    });
 
     return player;
   },
@@ -358,8 +369,41 @@ EntityFactory = Class({
     enemy.ai.blackboard = new b3.Blackboard();
   },
 
+  makeGun: function(options) {
+    ResourceManager.instance.loadModel('models/potatoCannon.json', function(model) {
+      model = model.clone();
+
+      var gun = this.entities.createEntity();
+
+      gun.addComponent(C.Position);
+      gun.addComponent(C.Drawable);
+
+      gun.drawable.scene = options.parent;
+      gun.drawable.mesh = new THREE.Mesh(
+        model.geometry,
+        model.material);
+
+      gun.drawable.mesh.position.copy(options.offset);
+
+      gun.drawable.scene.add(gun.drawable.mesh);
+
+      if (options.cameraControls) {
+        gun.addComponent(C.CameraPitch);
+
+        gun.cameraPitch.controls = options.cameraControls;
+        //gun.cameraPitch.offset = 90 * Math.PI / 180;
+      }
+
+      if (options.callback) {
+        options.callback(gun);
+      }
+    }.bind(this));
+  },
+
   makeBullet: function(options) {
     ResourceManager.instance.loadModel('models/potato.json', function(model) {
+      model = model.clone();
+
       var bullet = this.entities.createEntity();
 
       bullet.addTag("bullet");
@@ -379,7 +423,7 @@ EntityFactory = Class({
 
       bullet.drawable.mesh = new Physijs.ConvexMesh(
         model.geometry,
-        Physijs.createMaterial(model.material.clone(), 0.7, 0.01),
+        Physijs.createMaterial(model.material, 0.7, 0.01),
         0.3);
       bullet.drawable.mesh.entity = bullet;
 
@@ -441,11 +485,9 @@ EntityFactory = Class({
         });
       }.bind(this));
 
-      if (options.position) {
-        bullet.position.x = options.position.x;
-        bullet.position.y = options.position.y;
-        bullet.position.z = options.position.z;
-      }
+      bullet.position.x = options.position.x;
+      bullet.position.y = options.position.y;
+      bullet.position.z = options.position.z;
 
       var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
       vel.multiply(options.direction);
@@ -463,7 +505,7 @@ EntityFactory = Class({
         bullet.steaming.particles.vertices.push(particle);
       }
 
-      var smokeTexture = ResourceManager.instance.getTexture('./../gfx/smoketex.jpg');
+      var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + '/gfx/smoketex.jpg');
       var smokeMaterial = new THREE.PointCloudMaterial({
         map: smokeTexture,
         transparent: true,
@@ -479,6 +521,10 @@ EntityFactory = Class({
       bullet.steaming.container = new THREE.Gyroscope();
       bullet.steaming.container.add(bullet.steaming.system);
       bullet.drawable.mesh.add(bullet.steaming.container);
+
+      if (options.callback) {
+        options.callback(bullet);
+      }
     }.bind(this));
   },
 
@@ -501,7 +547,7 @@ EntityFactory = Class({
     ground.drawable.mesh.entity = ground;
 
     ground.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
-    ground.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+    ground.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
 
     ground.drawable.scene.add(ground.drawable.mesh);
   }

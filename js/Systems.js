@@ -47,10 +47,23 @@ PlayerInputSystem = Class({
           var direction = new THREE.Vector3();
           entity.cameraFollow.controls.getDirection(direction);
 
+          var bulletPos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
+          var bulletOffset = new THREE.Vector3(0, 0, -10);
+
+          var rotationMatrix = entity.velocity.rotationMatrix.clone();
+          var yMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.controls.pitchObject.matrix);
+          rotationMatrix.multiply(yMatrix);
+
+          bulletOffset.applyMatrix4(rotationMatrix);
+          bulletPos.add(bulletOffset);
+
+          var bulletRot = entity.cameraFollow.object.rotation.clone();
+          bulletRot.y += 90 * Math.PI / 180;
+
           EntityFactory.instance.makeBullet({
             scene: entity.drawable.scene,
-            position: entity.cameraFollow.object.position.clone(),
-            rotation: entity.cameraFollow.object.rotation.clone(),
+            position: bulletPos,
+            rotation: bulletRot,
             scale: new THREE.Vector3(0.5, 0.5, 0.5),
             direction: direction,
             rotationMatrix: entity.velocity.rotationMatrix,
@@ -363,6 +376,20 @@ SteamRemovalSystem = Class({
       if (entity.bullet.isHot === false) {
         entity.drawable.mesh.remove(entity.steaming.container);
       }
+    });
+  }
+});
+
+CameraPitchSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var pitchables = this.entities.queryComponents([C.CameraPitch, C.Drawable]);
+
+    pitchables.forEach(function(entity) {
+      entity.drawable.mesh.rotation.x = entity.cameraPitch.controls.pitchObject.rotation.x + entity.cameraPitch.offset;
     });
   }
 });

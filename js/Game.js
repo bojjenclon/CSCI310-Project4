@@ -98,7 +98,7 @@ Game = Class({
       cameraOffset: new THREE.Vector3(0, 3, 0)
     });
 
-    EntityFactory.instance.makeEnemy({
+    /*EntityFactory.instance.makeEnemy({
       scene: this.scene,
       position: new THREE.Vector3(0, 10, -200),
       aiTarget: this.player,
@@ -110,7 +110,7 @@ Game = Class({
       position: new THREE.Vector3(-100, 10, -150),
       aiTarget: this.player,
       bulletSpeed: Math.random() * (60 - 15) + 15
-    });
+    });*/
 
     /* Setup Systems */
 
@@ -118,7 +118,7 @@ Game = Class({
     this.systems.push(new AISystem(EntityFactory.instance.entities));
     this.systems.push(new MovementSystem(EntityFactory.instance.entities));
     this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
-    this.systems.push(new CameraFollowSystem(EntityFactory.instance.entities));
+    this.systems.push(new CameraPitchSystem(EntityFactory.instance.entities));
     this.systems.push(new ShootDelaySystem(EntityFactory.instance.entities));
     this.systems.push(new HurtSystem(EntityFactory.instance.entities));
     this.systems.push(new PlayerHealthSystem(EntityFactory.instance.entities));
@@ -128,6 +128,7 @@ Game = Class({
     this.systems.push(new SteamUpdateSystem(EntityFactory.instance.entities));
 
     this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
+    this.postPhysicsSystems.push(new CameraFollowSystem(EntityFactory.instance.entities));
 
     this.loadModels();
   },
@@ -153,26 +154,26 @@ Game = Class({
       // ensure the user is at the top of the page
       document.body.scrollTop = document.documentElement.scrollTop = 0;
 
+      this.update(false);
+
       this.initPointerLock();
 
-      this.run();
+      this.update(true);
     }
   },
 
-  run: function() {
-    requestAnimationFrame(this.update.bind(this));
-  },
-
-  update: function() {
-    requestAnimationFrame(this.update.bind(this));
+  update: function(animationFrame) {
+    if (animationFrame) {
+      requestAnimationFrame(this.update.bind(this));
+    }
 
     var time = performance.now();
     var dt = (time - this.prevTime) / 1000;
     Globals.instance.dt = dt;
 
     if (!this.paused) {
-      if (dt > 0.5) {
-        dt = 0.5;
+      if (dt > 0.05) {
+        dt = 0.05;
       }
 
       this.systems.forEach(function(system) {

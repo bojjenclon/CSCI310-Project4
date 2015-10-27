@@ -3,3 +3,7 @@ Enemies:
  > long range, medium range, short range, etc.
  > perhaps change weapon type based on range?
  > consider changing velocity and arc of bullets based on range
+
+Weapons:
+* Fry scatter shot
+* Baked potato orbital nuke

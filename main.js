@@ -55,7 +55,8 @@ function init() {
     instructions: document.getElementById("instructions"),
     crosshair: document.getElementById("crosshair"),
     modelsToPreload: [
-      "models/potato.json"
+      "models/potato.json",
+      "models/potatoCannon.json"
     ]
   };
   game = new Game(gameOptions);
