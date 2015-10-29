@@ -92,25 +92,26 @@ Game = Class({
 
     this.player = EntityFactory.instance.makePlayer({
       scene: this.scene,
-      position: new THREE.Vector3(0, 20, 0),
+      position: new THREE.Vector3(0, 30, 0),
       controls: this.controls,
       controlsObject: this.controls.getObject(),
-      cameraOffset: new THREE.Vector3(0, 3, 0)
+      cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
+      gunOffset: new THREE.Vector3(6, 4, 0)
     });
 
-    /*EntityFactory.instance.makeEnemy({
+    EntityFactory.instance.makeEnemy({
       scene: this.scene,
-      position: new THREE.Vector3(0, 10, -200),
+      position: new THREE.Vector3(0, 30, -200),
       aiTarget: this.player,
       bulletSpeed: Math.random() * (60 - 15) + 15
     });
 
     EntityFactory.instance.makeEnemy({
       scene: this.scene,
-      position: new THREE.Vector3(-100, 10, -150),
+      position: new THREE.Vector3(-100, 30, -150),
       aiTarget: this.player,
       bulletSpeed: Math.random() * (60 - 15) + 15
-    });*/
+    });
 
     /* Setup Systems */
 
@@ -149,7 +150,7 @@ Game = Class({
       this.blocker.style.visibility = "visible";
       this.instructions.style.visibility = "visible";
       Globals.instance.hudElement.style.display = 'block';
-      this.crosshair.style.display = 'block';
+      //this.crosshair.style.display = 'block';
 
       // ensure the user is at the top of the page
       document.body.scrollTop = document.documentElement.scrollTop = 0;

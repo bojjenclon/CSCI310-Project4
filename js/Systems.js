@@ -48,7 +48,7 @@ PlayerInputSystem = Class({
           entity.cameraFollow.controls.getDirection(direction);
 
           var bulletPos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
-          var bulletOffset = new THREE.Vector3(0, 0, -10);
+          var bulletOffset = new THREE.Vector3(0, 0, -30);
 
           var rotationMatrix = entity.velocity.rotationMatrix.clone();
           var yMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.controls.pitchObject.matrix);
@@ -103,7 +103,7 @@ PlayerInputSystem = Class({
   }
 }, {
   statics: {
-    MOVE_SPEED: 50,
+    MOVE_SPEED: 120,
     JUMP_FORCE: 2500
   }
 });

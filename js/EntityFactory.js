@@ -10,363 +10,377 @@ EntityFactory = Class({
   makePlayer: function(options) {
     var player = this.entities.createEntity();
 
-    player.addTag("player");
+    ResourceManager.instance.loadModel('models/character.json', function(model) {
+      model = model.clone();
 
-    player.addComponent(C.Identifier);
-    player.addComponent(C.Position);
-    player.addComponent(C.Velocity);
-    player.addComponent(C.Jump);
-    player.addComponent(C.Drawable);
-    player.addComponent(C.CameraFollow);
-    player.addComponent(C.ShootDelay);
-    player.addComponent(C.Health);
-    player.addComponent(C.Gun);
+      player.addTag("player");
 
-    player.identifier.type = Globals.ENTITY_TYPES.player;
+      player.addComponent(C.Identifier);
+      player.addComponent(C.Position);
+      player.addComponent(C.Velocity);
+      player.addComponent(C.Jump);
+      player.addComponent(C.Drawable);
+      player.addComponent(C.CameraFollow);
+      player.addComponent(C.ShootDelay);
+      player.addComponent(C.Health);
+      player.addComponent(C.Gun);
 
-    player.drawable.scene = options.scene;
+      player.identifier.type = Globals.ENTITY_TYPES.player;
 
-    player.drawable.mesh = new Physijs.BoxMesh(
-      new THREE.BoxGeometry(2, 8, 2),
-      Physijs.createMaterial(new THREE.MeshBasicMaterial({
-        color: 0xffff00
-      }), 0.9, 0.01), EntityFactory.MASS.player);
-    player.drawable.mesh.entity = player;
+      player.drawable.scene = options.scene;
 
-    player.drawable.mesh.position.copy(options.position);
-    //player.drawable.mesh.rotation.copy(options.rotation);
+      /*player.drawable.mesh = new Physijs.BoxMesh(
+        new THREE.BoxGeometry(2, 8, 2),
+        Physijs.createMaterial(new THREE.MeshBasicMaterial({
+          color: 0xffff00
+        }), 0.9, 0.01), EntityFactory.MASS.player);*/
+      player.drawable.mesh = new Physijs.CapsuleMesh(
+        model.geometry,
+        Physijs.createMaterial(new THREE.MeshBasicMaterial({
+          color: 0xffff00
+        }), 0.9, 0.01), EntityFactory.MASS.player);
+      player.drawable.mesh.entity = player;
 
-    player.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.player;
-    player.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.enemyBullet;
+      player.drawable.mesh.position.copy(options.position);
+      //player.drawable.mesh.rotation.copy(options.rotation);
 
-    player.drawable.scene.add(player.drawable.mesh);
+      player.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.player;
+      player.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.enemyBullet;
 
-    player.drawable.mesh.setDamping(0.99, 0);
-    player.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 0, 0));
+      player.drawable.scene.add(player.drawable.mesh);
 
-    player.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-      if (contact_normal.y < 0 && other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
-        player.jump.canJump = true;
-      }
+      player.drawable.mesh.setDamping(0.99, 0);
+      player.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 0, 0));
 
-      if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy && player.hasComponent(C.Hurt) === false) {
-        player.addComponent(C.Hurt);
-        player.hurt.originalColor = player.drawable.mesh.material.color;
+      player.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+        if (contact_normal.y < 0 && other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
+          player.jump.canJump = true;
+        }
 
-        player.health.hp--;
-        player.health.changed = true;
-      }
-    });
+        if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy && player.hasComponent(C.Hurt) === false) {
+          player.addComponent(C.Hurt);
+          player.hurt.originalColor = player.drawable.mesh.material.color;
 
-    player.position.x = options.position.x;
-    player.position.y = options.position.y;
-    player.position.z = options.position.z;
+          player.health.hp--;
+          player.health.changed = true;
+        }
+      });
 
-    player.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(player.drawable.mesh.matrix);
+      player.position.x = options.position.x;
+      player.position.y = options.position.y;
+      player.position.z = options.position.z;
 
-    player.cameraFollow.controls = options.controls;
-    player.cameraFollow.object = options.controlsObject;
-    player.cameraFollow.offset = options.cameraOffset;
+      player.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(player.drawable.mesh.matrix);
 
-    player.shootDelay.delayTheshold = 1.5;
+      player.cameraFollow.controls = options.controls;
+      player.cameraFollow.object = options.controlsObject;
+      player.cameraFollow.offset = options.cameraOffset;
 
-    this.makeGun({
-      parent: player.drawable.mesh,
-      cameraControls: options.controls,
-      offset: new THREE.Vector3(1.5, 1, 0),
-      callback: function(gun) {
-        player.gun.entity = gun;
-        player.gun.mesh = gun.drawable.mesh;
-      }
-    });
+      player.shootDelay.delayTheshold = 1.5;
+
+      this.makeGun({
+        parent: player.drawable.mesh,
+        cameraControls: options.controls,
+        offset: options.gunOffset,
+        callback: function(gun) {
+          player.gun.entity = gun;
+          player.gun.mesh = gun.drawable.mesh;
+        }
+      });
+    }.bind(this));
 
     return player;
   },
 
   makeEnemy: function(options) {
-    var enemy = this.entities.createEntity();
+    ResourceManager.instance.loadModel('models/character.json', function(model) {
+      model = model.clone();
 
-    enemy.addTag("enemy");
+      var enemy = this.entities.createEntity();
 
-    enemy.addComponent(C.Identifier);
-    enemy.addComponent(C.Position);
-    enemy.addComponent(C.Velocity);
-    enemy.addComponent(C.Drawable);
-    enemy.addComponent(C.Health);
-    enemy.addComponent(C.ShootDelay);
-    enemy.addComponent(C.AI);
+      enemy.addTag("enemy");
 
-    enemy.identifier.type = Globals.ENTITY_TYPES.enemy;
+      enemy.addComponent(C.Identifier);
+      enemy.addComponent(C.Position);
+      enemy.addComponent(C.Velocity);
+      enemy.addComponent(C.Drawable);
+      enemy.addComponent(C.Health);
+      enemy.addComponent(C.ShootDelay);
+      enemy.addComponent(C.AI);
 
-    enemy.drawable.scene = options.scene;
+      enemy.identifier.type = Globals.ENTITY_TYPES.enemy;
 
-    enemy.drawable.mesh = new Physijs.BoxMesh(
-      new THREE.BoxGeometry(10, 10, 10),
-      Physijs.createMaterial(new THREE.MeshPhongMaterial({
-        color: 0x0000ff
-      }), 0.9, 0.1), EntityFactory.MASS.enemy);
-    enemy.drawable.mesh.entity = enemy;
+      enemy.drawable.scene = options.scene;
 
-    enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
-    enemy.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+      enemy.drawable.mesh = new Physijs.CapsuleMesh(
+        model.geometry,
+        Physijs.createMaterial(new THREE.MeshPhongMaterial({
+          color: 0x0000ff
+        }), 0.9, 0.1), EntityFactory.MASS.enemy);
+      enemy.drawable.mesh.entity = enemy;
 
-    enemy.drawable.mesh.position.copy(options.position);
-    //enemy.drawable.mesh.rotation.copy(options.rotation);
+      enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
+      enemy.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
 
-    enemy.drawable.scene.add(enemy.drawable.mesh);
+      enemy.drawable.mesh.position.copy(options.position);
+      //enemy.drawable.mesh.rotation.copy(options.rotation);
 
-    enemy.drawable.mesh.setDamping(0.99, 0);
+      enemy.drawable.scene.add(enemy.drawable.mesh);
 
-    enemy.position.x = options.position.x;
-    enemy.position.y = options.position.y;
-    enemy.position.z = options.position.z;
+      enemy.drawable.mesh.setDamping(0.99, 0);
+      enemy.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 1, 0));
 
-    enemy.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(enemy.drawable.mesh.matrix);
+      enemy.position.x = options.position.x;
+      enemy.position.y = options.position.y;
+      enemy.position.z = options.position.z;
 
-    enemy.health.healthBar = new THREE.Mesh(
-      new THREE.BoxGeometry(10, 1.5, 0.5),
-      new THREE.MeshBasicMaterial({
-        color: 0x00ff00
-      }));
-    enemy.health.healthBar.position.set(0, 7, 0);
-    enemy.drawable.mesh.add(enemy.health.healthBar);
+      enemy.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(enemy.drawable.mesh.matrix);
 
-    enemy.shootDelay.delayTheshold = 1.5;
+      enemy.health.healthBar = new THREE.Mesh(
+        new THREE.BoxGeometry(10, 1.5, 0.5),
+        new THREE.MeshBasicMaterial({
+          color: 0x00ff00
+        }));
+      enemy.health.healthBar.position.set(0, 13, 0);
+      enemy.drawable.mesh.add(enemy.health.healthBar);
 
-    var FaceNode = b3.Class(b3.Action);
-    FaceNode.prototype.name = 'FaceNode';
-    FaceNode.prototype.parameters = {
-      'facing': null
-    };
+      enemy.shootDelay.delayTheshold = 1.5;
 
-    FaceNode.prototype.__Action_initialize = FaceNode.prototype.initialize;
-    FaceNode.prototype.initialize = function(settings) {
-      settings = settings || {};
+      var FaceNode = b3.Class(b3.Action);
+      FaceNode.prototype.name = 'FaceNode';
+      FaceNode.prototype.parameters = {
+        'facing': null
+      };
 
-      this.__Action_initialize();
+      FaceNode.prototype.__Action_initialize = FaceNode.prototype.initialize;
+      FaceNode.prototype.initialize = function(settings) {
+        settings = settings || {};
 
-      this.facing = settings.facing;
-    };
+        this.__Action_initialize();
 
-    FaceNode.prototype.tick = function(tick) {
-      if (this.facing._manager === null || this.facing._manager === undefined) {
-        return b3.FAILURE;
-      }
+        this.facing = settings.facing;
+      };
 
-      // http://forum.unity3d.com/threads/making-an-object-rotate-to-face-another.1211/
-      // http://answers.unity3d.com/questions/503934/chow-to-check-if-an-object-is-facing-another.html
+      FaceNode.prototype.tick = function(tick) {
+        if (this.facing._manager === null || this.facing._manager === undefined) {
+          return b3.FAILURE;
+        }
 
-      var parentPos = tick.target.drawable.mesh.position.clone();
-      var followingPos = this.facing.drawable.mesh.position.clone();
+        // http://forum.unity3d.com/threads/making-an-object-rotate-to-face-another.1211/
+        // http://answers.unity3d.com/questions/503934/chow-to-check-if-an-object-is-facing-another.html
 
-      parentPos.y = 0;
-      followingPos.y = 0;
+        var parentPos = tick.target.drawable.mesh.position.clone();
+        var followingPos = this.facing.drawable.mesh.position.clone();
 
-      var posDif = parentPos.clone();
-      posDif.sub(followingPos);
+        parentPos.y = 0;
+        followingPos.y = 0;
 
-      var direction = new THREE.Vector3(0, 0, -1);
-      var rotation = new THREE.Euler(0, 0, 0, "YXZ");
-      rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
+        var posDif = parentPos.clone();
+        posDif.sub(followingPos);
 
-      var forward = new THREE.Vector3();
-      forward.copy(direction).applyEuler(rotation);
+        var direction = new THREE.Vector3(0, 0, -1);
+        var rotation = new THREE.Euler(0, 0, 0, "YXZ");
+        rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
 
-      var angle = forward.angleTo(posDif);
+        var forward = new THREE.Vector3();
+        forward.copy(direction).applyEuler(rotation);
 
-      if (angle <= 0.02) {
-        return b3.SUCCESS;
-      }
+        var angle = forward.angleTo(posDif);
 
-      var lookAtMatrix = new THREE.Matrix4();
-      lookAtMatrix.lookAt(followingPos, parentPos, new THREE.Vector3(0, 1, 0));
+        if (angle <= 0.1) {
+          return b3.SUCCESS;
+        }
 
-      var parentRotation = new THREE.Quaternion().setFromEuler(tick.target.drawable.mesh.rotation);
-      var targetRotation = new THREE.Quaternion().setFromRotationMatrix(lookAtMatrix);
+        var lookAtMatrix = new THREE.Matrix4();
+        lookAtMatrix.lookAt(followingPos, parentPos, new THREE.Vector3(0, 1, 0));
 
-      var str = Math.min(3 * Globals.instance.dt, 5);
+        var parentRotation = new THREE.Quaternion().setFromEuler(tick.target.drawable.mesh.rotation);
+        var targetRotation = new THREE.Quaternion().setFromRotationMatrix(lookAtMatrix);
 
-      parentRotation.slerp(targetRotation, str);
+        var str = Math.min(3 * Globals.instance.dt, 5);
 
-      tick.target.drawable.mesh.rotation.setFromQuaternion(parentRotation);
-      tick.target.drawable.mesh.__dirtyRotation = true;
+        parentRotation.slerp(targetRotation, str);
 
-      return b3.RUNNING;
-    };
+        tick.target.drawable.mesh.rotation.setFromQuaternion(parentRotation);
+        tick.target.drawable.mesh.__dirtyRotation = true;
 
-    var RandomChildNode = b3.Class(b3.Composite);
-    RandomChildNode.prototype.name = 'RandomChildNode';
+        return b3.RUNNING;
+      };
 
-    RandomChildNode.prototype.__Composite_initialize = RandomChildNode.prototype.initialize;
-    RandomChildNode.prototype.initialize = function(settings) {
-      settings = settings || {};
+      var RandomChildNode = b3.Class(b3.Composite);
+      RandomChildNode.prototype.name = 'RandomChildNode';
 
-      this.__Composite_initialize(settings);
+      RandomChildNode.prototype.__Composite_initialize = RandomChildNode.prototype.initialize;
+      RandomChildNode.prototype.initialize = function(settings) {
+        settings = settings || {};
 
-      this.chance = settings.chance;
-    };
+        this.__Composite_initialize(settings);
 
-    RandomChildNode.prototype.tick = function(tick) {
-      //var chance = 1 / this.children.length;
+        this.chance = settings.chance;
+      };
 
-      for (var i = 0; i < this.children.length; i++) {
-        if (Math.random() <= this.chance[i]) {
-          var status = this.children[i]._execute(tick);
+      RandomChildNode.prototype.tick = function(tick) {
+        //var chance = 1 / this.children.length;
 
-          if (status !== b3.SUCCESS) {
-            return status;
+        for (var i = 0; i < this.children.length; i++) {
+          if (Math.random() <= this.chance[i]) {
+            var status = this.children[i]._execute(tick);
+
+            if (status !== b3.SUCCESS) {
+              return status;
+            }
           }
         }
-      }
 
-      return b3.SUCCESS;
-    };
-
-    var FollowNode = b3.Class(b3.Action);
-    FollowNode.prototype.name = 'FollowNode';
-    FollowNode.prototype.parameters = {
-      'following': null
-    };
-
-    FollowNode.prototype.__Action_initialize = FollowNode.prototype.initialize;
-    FollowNode.prototype.initialize = function(settings) {
-      settings = settings || {};
-
-      this.__Action_initialize();
-
-      this.following = settings.following;
-    };
-
-    FollowNode.prototype.tick = function(tick) {
-      if (this.following._manager === null || this.following._manager === undefined) {
-        return b3.FAILURE;
-      }
-
-      var parentPos = tick.target.drawable.mesh.position.clone();
-      var followingPos = this.following.drawable.mesh.position.clone();
-
-      var distance = parentPos.distanceTo(followingPos);
-
-      if (distance < 0.5) {
         return b3.SUCCESS;
-      }
+      };
 
-      var difference = new THREE.Vector3();
-      difference.subVectors(followingPos, parentPos);
+      var FollowNode = b3.Class(b3.Action);
+      FollowNode.prototype.name = 'FollowNode';
+      FollowNode.prototype.parameters = {
+        'following': null
+      };
 
-      var normal = difference.normalize();
-      var velocity = new THREE.Vector3(tick.target.velocity.x, tick.target.velocity.y, tick.target.velocity.z);
-      var dv = new THREE.Vector3(EntityFactory.MOVE_SPEED.enemy * normal.x, 0, EntityFactory.MOVE_SPEED.enemy * normal.z);
+      FollowNode.prototype.__Action_initialize = FollowNode.prototype.initialize;
+      FollowNode.prototype.initialize = function(settings) {
+        settings = settings || {};
 
-      velocity.add(dv);
+        this.__Action_initialize();
 
-      tick.target.velocity.x = velocity.x;
-      tick.target.velocity.y = velocity.y;
-      tick.target.velocity.z = velocity.z;
+        this.following = settings.following;
+      };
 
-      return b3.RUNNING;
-    };
+      FollowNode.prototype.tick = function(tick) {
+        if (this.following._manager === null || this.following._manager === undefined) {
+          return b3.FAILURE;
+        }
 
-    var ShootNode = b3.Class(b3.Action);
-    ShootNode.prototype.name = 'ShootNode';
-    ShootNode.prototype.parameters = {
-      'shootingAt': null
-    };
+        var parentPos = tick.target.drawable.mesh.position.clone();
+        var followingPos = this.following.drawable.mesh.position.clone();
 
-    ShootNode.prototype.__Action_initialize = ShootNode.prototype.initialize;
-    ShootNode.prototype.initialize = function(settings) {
-      settings = settings || {};
+        var distance = parentPos.distanceTo(followingPos);
 
-      this.__Action_initialize();
+        if (distance < 0.5) {
+          return b3.SUCCESS;
+        }
 
-      this.shootingAt = settings.shootingAt;
-      this.bulletSpeed = settings.bulletSpeed;
-    };
+        var difference = new THREE.Vector3();
+        difference.subVectors(followingPos, parentPos);
 
-    ShootNode.prototype.tick = function(tick) {
-      if (this.shootingAt._manager === null || this.shootingAt._manager === undefined) {
-        return b3.FAILURE;
-      }
-      else if (tick.target.shootDelay.canShoot === false) {
-        return b3.FAILURE;
-      }
+        var normal = difference.normalize();
+        var velocity = new THREE.Vector3(tick.target.velocity.x, tick.target.velocity.y, tick.target.velocity.z);
+        var dv = new THREE.Vector3(EntityFactory.MOVE_SPEED.enemy * normal.x, 0, EntityFactory.MOVE_SPEED.enemy * normal.z);
 
-      var direction = new THREE.Vector3(0, 0, 1);
-      var rotation = new THREE.Euler(0, 0, 0, "YXZ");
-      rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
+        velocity.add(dv);
 
-      var forward = new THREE.Vector3();
-      forward.copy(direction).applyEuler(rotation);
+        tick.target.velocity.x = velocity.x;
+        tick.target.velocity.y = velocity.y;
+        tick.target.velocity.z = velocity.z;
 
-      var parentPos = tick.target.drawable.mesh.position.clone();
-      var followingPos = this.shootingAt.drawable.mesh.position.clone();
+        return b3.RUNNING;
+      };
 
-      var followingVel = new THREE.Vector3(this.shootingAt.velocity.x, this.shootingAt.velocity.y, this.shootingAt.velocity.z);
-      followingVel.multiplyScalar(Globals.instance.dt);
-      var predictedPos = followingPos.clone();
-      predictedPos.add(followingVel);
+      var ShootNode = b3.Class(b3.Action);
+      ShootNode.prototype.name = 'ShootNode';
+      ShootNode.prototype.parameters = {
+        'shootingAt': null
+      };
 
-      var distance = parentPos.distanceTo(predictedPos);
+      ShootNode.prototype.__Action_initialize = ShootNode.prototype.initialize;
+      ShootNode.prototype.initialize = function(settings) {
+        settings = settings || {};
 
-      var velocity = this.bulletSpeed;
+        this.__Action_initialize();
 
-      // I have no clue why this works
-      //var velOffset = (Math.PI / 2) - (velocity / 250);
-      //var velOffset = 1.3 + (velocity / 1000);
-      var velOffset = 1 + (velocity / 100);
-      forward.y += distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
+        this.shootingAt = settings.shootingAt;
+        this.bulletSpeed = settings.bulletSpeed;
+      };
 
-      var spawnLocation = parentPos.clone();
-      var spawnOffset = new THREE.Vector3(0, 0, 10);
-      spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
-      spawnLocation.add(spawnOffset);
+      ShootNode.prototype.tick = function(tick) {
+        if (this.shootingAt._manager === null || this.shootingAt._manager === undefined) {
+          return b3.FAILURE;
+        }
+        else if (tick.target.shootDelay.canShoot === false) {
+          return b3.FAILURE;
+        }
 
-      EntityFactory.instance.makeBullet({
-        scene: tick.target.drawable.scene,
-        position: spawnLocation,
-        rotation: tick.target.drawable.mesh.rotation.clone(),
-        scale: new THREE.Vector3(0.5, 0.5, 0.5),
-        direction: forward,
-        rotationMatrix: tick.target.velocity.rotationMatrix,
-        velocity: velocity,
-        owner: 'enemy'
+        var direction = new THREE.Vector3(0, 0, 1);
+        var rotation = new THREE.Euler(0, 0, 0, "YXZ");
+        rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
+
+        var forward = new THREE.Vector3();
+        forward.copy(direction).applyEuler(rotation);
+
+        var parentPos = tick.target.drawable.mesh.position.clone();
+        var followingPos = this.shootingAt.drawable.mesh.position.clone();
+
+        var followingVel = new THREE.Vector3(this.shootingAt.velocity.x, this.shootingAt.velocity.y, this.shootingAt.velocity.z);
+        followingVel.multiplyScalar(Globals.instance.dt);
+        var predictedPos = followingPos.clone();
+        predictedPos.add(followingVel);
+
+        var distance = parentPos.distanceTo(predictedPos);
+
+        var velocity = this.bulletSpeed;
+
+        // I have no clue why this works
+        //var velOffset = (Math.PI / 2) - (velocity / 250);
+        //var velOffset = 1.3 + (velocity / 1000);
+        var velOffset = 1 + (velocity / 100);
+        forward.y += distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
+
+        var spawnLocation = parentPos.clone();
+        var spawnOffset = new THREE.Vector3(0, 10, 10);
+        spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
+        spawnLocation.add(spawnOffset);
+
+        EntityFactory.instance.makeBullet({
+          scene: tick.target.drawable.scene,
+          position: spawnLocation,
+          rotation: tick.target.drawable.mesh.rotation.clone(),
+          scale: new THREE.Vector3(0.5, 0.5, 0.5),
+          direction: forward,
+          rotationMatrix: tick.target.velocity.rotationMatrix,
+          velocity: velocity,
+          owner: 'enemy'
+        });
+
+        tick.target.shootDelay.canShoot = false;
+
+        return b3.SUCCESS;
+      };
+
+      enemy.ai.tree = new b3.BehaviorTree();
+      enemy.ai.tree.root = new b3.Sequence({
+        children: [
+          new b3.Sequence({
+            children: [
+              new FaceNode({
+                facing: options.aiTarget
+              }),
+              new RandomChildNode({
+                children: [
+                  new FollowNode({
+                    following: options.aiTarget
+                  }),
+                  new ShootNode({
+                    shootingAt: options.aiTarget,
+                    bulletSpeed: options.bulletSpeed
+                  })
+                ],
+                chance: [
+                  0.9,
+                  0.1
+                ]
+              })
+            ]
+          })
+        ]
       });
 
-      tick.target.shootDelay.canShoot = false;
-
-      return b3.SUCCESS;
-    };
-
-    enemy.ai.tree = new b3.BehaviorTree();
-    enemy.ai.tree.root = new b3.Sequence({
-      children: [
-        new b3.Sequence({
-          children: [
-            new FaceNode({
-              facing: options.aiTarget
-            }),
-            new RandomChildNode({
-              children: [
-                new FollowNode({
-                  following: options.aiTarget
-                }),
-                new ShootNode({
-                  shootingAt: options.aiTarget,
-                  bulletSpeed: options.bulletSpeed
-                })
-              ],
-              chance: [
-                0.9,
-                0.1
-              ]
-            })
-          ]
-        })
-      ]
-    });
-
-    enemy.ai.target = enemy;
-    enemy.ai.blackboard = new b3.Blackboard();
+      enemy.ai.target = enemy;
+      enemy.ai.blackboard = new b3.Blackboard();
+    }.bind(this));
   },
 
   makeGun: function(options) {
@@ -539,10 +553,20 @@ EntityFactory = Class({
 
     ground.drawable.scene = options.scene;
 
+    var mainTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_COLOR.jpg');
+    mainTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
+    var diffuseTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_DISP.jpg');
+    diffuseTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
+    var specularTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_SPEC.jpg');
+    specularTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
+
     ground.drawable.mesh = new Physijs.BoxMesh(
       new THREE.BoxGeometry(options.width, 1, options.height),
-      new THREE.MeshBasicMaterial({
-        color: 0x00dd00
+      new THREE.MeshPhongMaterial({
+        map: ResourceManager.instance.getTexture('gfx/brick-floor-tileable_COLOR.jpg'),
+        displacementMap: ResourceManager.instance.getTexture('gfx/brick-floor-tileable_DISP.jpg'),
+        specularMap: ResourceManager.instance.getTexture('gfx/brick-floor-tileable_SPEC.jpg')
+          //color: 0x00ff00
       }), 0);
     ground.drawable.mesh.entity = ground;
 
@@ -572,7 +596,7 @@ EntityFactory = Class({
     },
 
     MOVE_SPEED: {
-      enemy: 70
+      enemy: 160
     },
 
     MASS: {
