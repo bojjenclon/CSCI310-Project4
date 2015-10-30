@@ -319,6 +319,9 @@ EntityFactory = Class({
         var predictedPos = followingPos.clone();
         predictedPos.add(followingVel);
 
+        /*var positionOffset = parentPos.clone().sub(followingPos);
+        predictedPos.add(positionOffset);*/
+
         var rotation = new THREE.Euler(0, 0, 0, "YXZ");
         rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
 
@@ -420,6 +423,7 @@ EntityFactory = Class({
 
       potato.addComponent(C.Identifier);
       potato.addComponent(C.Position);
+      potato.addComponent(C.Velocity);
       potato.addComponent(C.Drawable);
       potato.addComponent(C.Bullet);
       potato.addComponent(C.Expirable);
@@ -428,6 +432,8 @@ EntityFactory = Class({
 
       potato.identifier.type = Globals.ENTITY_TYPES.bullet;
       potato.bullet.owner = options.owner;
+
+      potato.velocity.doMove = false;
 
       potato.drawable.scene = options.scene;
 
@@ -493,6 +499,18 @@ EntityFactory = Class({
 
           potato.oneTimeHit.alreadyHit.push(other_object.uuid);
         }
+
+        var soundPos = new THREE.Vector3().setFromMatrixPosition(potato.drawable.mesh.matrixWorld);
+        var soundVel = new THREE.Vector3(potato.velocity.x * Globals.instance.dt, potato.velocity.y * Globals.instance.dt, potato.velocity.z * Globals.instance.dt);
+        var soundForward = new THREE.Vector3(0, 0, 1);
+        soundForward.applyProjection(potato.drawable.mesh.matrixWorld);
+        soundForward.normalize();
+
+        var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/hitSplat.wav');
+        sound.setPosition(soundPos);
+        sound.setVelocity(vel);
+        sound.setOrientation(soundForward);
+        sound.play();
 
         potato.bullet.isHot = false;
 

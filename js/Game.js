@@ -25,6 +25,9 @@ Game = Class({
     this.modelsToPreload = options.modelsToPreload;
     this.percentModelsLoaded = 0;
 
+    this.soundsToPreload = options.soundsToPreload;
+    this.percentSoundsLoaded = 0;
+
     this.systemsDelay = 0;
   },
 
@@ -116,6 +119,8 @@ Game = Class({
       hp: 15
     });
 
+    this.setupAudio();
+
     /* Setup Systems */
 
     this.systems.push(new PlayerInputSystem(EntityFactory.instance.entities));
@@ -135,19 +140,39 @@ Game = Class({
     this.postPhysicsSystems.push(new CameraFollowSystem(EntityFactory.instance.entities));
 
     this.loadModels();
+    this.loadSounds();
   },
 
-  loadModels: function() {
-    this.modelsToPreload.forEach(function(model) {
-      ResourceManager.instance.loadModel(model, this.modelLoaded.bind(this));
+  setupAudio: function() {
+    window.AudioContext = (
+      window.AudioContext ||
+      window.webkitAudioContext ||
+      null
+    );
+
+    if (!AudioContext) {
+      throw new Error("AudioContext not supported!");
+    }
+
+    var ctx = new AudioContext();
+
+    Globals.instance.sound = new SoundController({
+      context: ctx,
+      following: this.camera
+    });
+  },
+
+  loadSounds: function() {
+    this.soundsToPreload.forEach(function(path) {
+      Globals.instance.sound.loadSound(Globals.DIR + path, this.soundLoaded.bind(this));
     }.bind(this));
   },
 
-  modelLoaded: function(model) {
-    var percentPerModel = 100.0 / this.modelsToPreload.length;
-    this.percentModelsLoaded += percentPerModel;
+  soundLoaded: function(sound) {
+    var percentPerSound = 100.0 / this.soundsToPreload.length;
+    this.percentSoundsLoaded += percentPerSound;
 
-    if (this.percentModelsLoaded > 99.0) {
+    if (this.percentSoundsLoaded > 99.0) {
       // hide loading indicator and show instructions
       this.loadingContainer.style.visibility = "hidden";
       this.blocker.style.visibility = "visible";
@@ -164,6 +189,17 @@ Game = Class({
 
       this.update(true);
     }
+  },
+
+  loadModels: function() {
+    this.modelsToPreload.forEach(function(path) {
+      ResourceManager.instance.loadModel(Globals.DIR + path, this.modelLoaded.bind(this));
+    }.bind(this));
+  },
+
+  modelLoaded: function(model) {
+    var percentPerModel = 100.0 / this.modelsToPreload.length;
+    this.percentModelsLoaded += percentPerModel;
   },
 
   update: function(animationFrame) {
@@ -189,6 +225,8 @@ Game = Class({
       this.postPhysicsSystems.forEach(function(system) {
         system.update(dt);
       });
+
+      Globals.instance.sound.update(dt);
 
       MouseController.instance.update(dt);
     }

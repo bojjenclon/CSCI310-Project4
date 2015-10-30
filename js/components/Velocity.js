@@ -6,5 +6,7 @@ function Velocity() {
   this.z = 0;
 
   this.rotationMatrix = null;
+
+  this.doMove = true;
 }
 

@@ -47,7 +47,8 @@ PlayerInputSystem = Class({
           var direction = new THREE.Vector3();
           entity.cameraFollow.controls.getDirection(direction);
 
-          var bulletPos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
+          var gunPos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
+          var bulletPos = gunPos.clone();
           var bulletOffset = new THREE.Vector3(0, 0.4, -25);
 
           var rotationMatrix = entity.velocity.rotationMatrix.clone();
@@ -75,6 +76,12 @@ PlayerInputSystem = Class({
           Globals.instance.reloadImg.move_to(0);
           Globals.instance.reloadImg.play();
           Globals.instance.reloadingElement.style.visibility = "visible";
+
+          var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
+          sound.setPosition(gunPos);
+          sound.setVelocity(velocity);
+          sound.setOrientation(direction);
+          sound.play();
         }
         else if (MouseController.instance.wasPressed.right) {
           var baseDirection = new THREE.Vector3();
@@ -143,6 +150,10 @@ MovementSystem = Class({
 
     moveables.forEach(function(entity) {
       var velocity = new THREE.Vector3(entity.velocity.x, entity.velocity.y, entity.velocity.z);
+
+      if (entity.velocity.doMove === false) {
+        return;
+      }
 
       if (entity.hasComponent(C.Drawable)) {
         entity.drawable.mesh.applyCentralImpulse(velocity);

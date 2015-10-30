@@ -3,6 +3,7 @@ global.THREE = require('three');
 global.THREEx = require('./js/THREEx.KeyboardState.js');
 global.Physijs = require('physijs-browserify')(THREE);
 global.Stats = require('stats.js');
+global.Howler = require('howler');
 
 require('./RequestAnimationFrame.js');
 require('./rubbable.js');
@@ -17,6 +18,7 @@ require('./js/PointerLockControls.js');
 require('./js/EntityFactory.js');
 require('./js/Systems.js');
 require('./js/MouseController.js');
+require('./js/SoundController.js');
 
 Physijs.scripts.worker = './libs/physijsWorker.js';
 Physijs.scripts.ammo = './ammo.js';
@@ -59,6 +61,10 @@ function init() {
       "models/potatoCannon.json",
       "models/character.json",
       "models/fry.json"
+    ],
+    soundsToPreload: [
+      "sfx/arrowlessBow.mp3",
+      "sfx/hitSplat.wav"
     ]
   };
   game = new Game(gameOptions);

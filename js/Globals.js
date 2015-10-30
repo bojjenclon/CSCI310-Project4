@@ -13,6 +13,8 @@ Globals = Class({
     this.reloadImg = null;
 
     this.overlayElement = null;
+
+    this.sound = null;
   }
 }, {
   statics: {
