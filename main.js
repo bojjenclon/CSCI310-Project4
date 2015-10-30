@@ -65,6 +65,12 @@ function init() {
     soundsToPreload: [
       "sfx/arrowlessBow.mp3",
       "sfx/hitSplat.wav"
+    ],
+    texturesToPreload: [
+      'gfx/brick-floor-tileable_COLOR.jpg',
+      'gfx/brick-floor-tileable_DISP.jpg',
+      'gfx/brick-floor-tileable_SPEC.jpg',
+      'gfx/smoketex.jpg'
     ]
   };
   game = new Game(gameOptions);

@@ -22,7 +22,17 @@ ResourceManager = Class({
     this.models = {};
   },
 
-  getTexture: function(path, callback) {
+  loadTexture: function(path, callback) {
+    if (path in this.textures) {
+      throw new Error("The texture located at " + path + " is already loaded");
+    }
+
+    this.textures[path] = THREE.ImageUtils.loadTexture(path, undefined, callback, function(e) {
+      console.log(e);
+    });
+  },
+
+  getTexture: function(path) {
     if (path === null || path === undefined) {
       return null;
     }
@@ -30,9 +40,7 @@ ResourceManager = Class({
       return this.textures[path];
     }
 
-    this.textures[path] = THREE.ImageUtils.loadTexture(path, undefined, callback);
-
-    return this.textures[path];
+    throw new Error("The texture located at " + path + " is not loaded");
   },
 
   loadModel: function(path, callback) {

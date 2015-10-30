@@ -1,3 +1,6 @@
+// http://www.html5rocks.com/en/tutorials/webaudio/intro/
+// http://www.html5rocks.com/en/tutorials/webaudio/positional_audio/
+
 Sound = Class({
   constructor: function(options) {
     this.context = options.context;

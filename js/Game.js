@@ -28,6 +28,9 @@ Game = Class({
     this.soundsToPreload = options.soundsToPreload;
     this.percentSoundsLoaded = 0;
 
+    this.texturesToPreload = options.texturesToPreload;
+    this.percentTexturesLoaded = 0;
+
     this.systemsDelay = 0;
   },
 
@@ -85,62 +88,13 @@ Game = Class({
     var dirLight = new THREE.DirectionalLight(0xdcdcdc, 0.5);
     this.scene.add(dirLight);
 
-    /* Create Entities */
-
-    EntityFactory.instance.makeGround({
-      scene: this.scene,
-      width: 2000,
-      height: 2000
-    });
-
-    this.player = EntityFactory.instance.makePlayer({
-      scene: this.scene,
-      position: new THREE.Vector3(0, 30, 0),
-      controls: this.controls,
-      controlsObject: this.controls.getObject(),
-      cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
-      gunOffset: new THREE.Vector3(9, 11, 0),
-      hp: 20
-    });
-
-    EntityFactory.instance.makeEnemy({
-      scene: this.scene,
-      position: new THREE.Vector3(0, 30, -200),
-      aiTarget: this.player,
-      bulletSpeed: Math.random() * (60 - 15) + 15,
-      hp: 15
-    });
-
-    EntityFactory.instance.makeEnemy({
-      scene: this.scene,
-      position: new THREE.Vector3(-100, 30, -150),
-      aiTarget: this.player,
-      bulletSpeed: Math.random() * (60 - 15) + 15,
-      hp: 15
-    });
+    /* Load Assets */
 
     this.setupAudio();
 
-    /* Setup Systems */
-
-    this.systems.push(new PlayerInputSystem(EntityFactory.instance.entities));
-    this.systems.push(new AISystem(EntityFactory.instance.entities));
-    this.systems.push(new MovementSystem(EntityFactory.instance.entities));
-    this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
-    this.systems.push(new CameraPitchSystem(EntityFactory.instance.entities));
-    this.systems.push(new ShootDelaySystem(EntityFactory.instance.entities));
-    this.systems.push(new HurtSystem(EntityFactory.instance.entities));
-    this.systems.push(new PlayerHealthSystem(EntityFactory.instance.entities));
-    this.systems.push(new HealthBarSystem(EntityFactory.instance.entities));
-    this.systems.push(new DeathSystem(EntityFactory.instance.entities));
-    this.systems.push(new SteamRemovalSystem(EntityFactory.instance.entities));
-    this.systems.push(new SteamUpdateSystem(EntityFactory.instance.entities));
-
-    this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
-    this.postPhysicsSystems.push(new CameraFollowSystem(EntityFactory.instance.entities));
-
     this.loadModels();
     this.loadSounds();
+    this.loadTextures();
   },
 
   setupAudio: function() {
@@ -172,22 +126,8 @@ Game = Class({
     var percentPerSound = 100.0 / this.soundsToPreload.length;
     this.percentSoundsLoaded += percentPerSound;
 
-    if (this.percentSoundsLoaded > 99.0) {
-      // hide loading indicator and show instructions
-      this.loadingContainer.style.visibility = "hidden";
-      this.blocker.style.visibility = "visible";
-      this.instructions.style.visibility = "visible";
-      Globals.instance.hudElement.style.display = 'block';
-      //this.crosshair.style.display = 'block';
-
-      // ensure the user is at the top of the page
-      document.body.scrollTop = document.documentElement.scrollTop = 0;
-
-      this.update(false);
-
-      this.initPointerLock();
-
-      this.update(true);
+    if (this.waitForPreload()) {
+      this.makeGame();
     }
   },
 
@@ -200,6 +140,111 @@ Game = Class({
   modelLoaded: function(model) {
     var percentPerModel = 100.0 / this.modelsToPreload.length;
     this.percentModelsLoaded += percentPerModel;
+
+    if (this.waitForPreload()) {
+      this.makeGame();
+    }
+  },
+
+  loadTextures: function() {
+    this.texturesToPreload.forEach(function(path) {
+      ResourceManager.instance.loadTexture(Globals.DIR + path, this.textureLoaded.bind(this));
+    }.bind(this));
+  },
+
+  textureLoaded: function(texture) {
+    var percentPerTexture = 100.0 / this.texturesToPreload.length;
+    this.percentTexturesLoaded += percentPerTexture;
+
+    if (this.waitForPreload()) {
+      this.makeGame();
+    }
+  },
+
+  waitForPreload: function() {
+    var modelsDone = this.percentModelsLoaded > 99.0;
+    var soundsDone = this.percentSoundsLoaded > 99.0;
+    var texturesDone = this.percentTexturesLoaded > 99.0;
+
+    var donePreloadng = (modelsDone && soundsDone && texturesDone);
+
+    return donePreloadng;
+  },
+
+  makeGame: function() {
+    /* Create Entities */
+
+    EntityFactory.instance.makeGround({
+      scene: this.scene,
+      width: 2000,
+      height: 2000
+    });
+
+    this.player = EntityFactory.instance.makePlayer({
+      scene: this.scene,
+      position: new THREE.Vector3(0, 30, 0),
+      controls: this.controls,
+      controlsObject: this.controls.getObject(),
+      cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
+      gunOffset: new THREE.Vector3(9, 8, 0),
+      hp: 20
+    });
+
+    EntityFactory.instance.makeEnemy({
+      scene: this.scene,
+      position: new THREE.Vector3(0, 30, -200),
+      aiTarget: this.player,
+      bulletSpeed: Math.random() * (60 - 15) + 15,
+      hp: 15
+    });
+
+    EntityFactory.instance.makeEnemy({
+      scene: this.scene,
+      position: new THREE.Vector3(-100, 30, -150),
+      aiTarget: this.player,
+      bulletSpeed: Math.random() * (60 - 15) + 15,
+      hp: 15
+    });
+
+    /* Setup Systems */
+
+    this.systems.push(new PlayerInputSystem(EntityFactory.instance.entities));
+    this.systems.push(new AISystem(EntityFactory.instance.entities));
+    this.systems.push(new MovementSystem(EntityFactory.instance.entities));
+    this.systems.push(new ExpirableSystem(EntityFactory.instance.entities));
+    this.systems.push(new CameraPitchSystem(EntityFactory.instance.entities));
+    this.systems.push(new ShootDelaySystem(EntityFactory.instance.entities));
+    this.systems.push(new HurtSystem(EntityFactory.instance.entities));
+    this.systems.push(new PlayerHealthSystem(EntityFactory.instance.entities));
+    this.systems.push(new HealthBarSystem(EntityFactory.instance.entities));
+    this.systems.push(new DeathSystem(EntityFactory.instance.entities));
+    this.systems.push(new SteamRemovalSystem(EntityFactory.instance.entities));
+    this.systems.push(new SteamUpdateSystem(EntityFactory.instance.entities));
+
+    this.postPhysicsSystems.push(new PhysicsUpdateSystem(EntityFactory.instance.entities));
+    this.postPhysicsSystems.push(new CameraFollowSystem(EntityFactory.instance.entities));
+
+    /* Start Game */
+
+    this.startGame();
+  },
+
+  startGame: function() {
+    // hide loading indicator and show instructions
+    this.loadingContainer.style.visibility = "hidden";
+    this.blocker.style.visibility = "visible";
+    this.instructions.style.visibility = "visible";
+    Globals.instance.hudElement.style.display = 'block';
+    //this.crosshair.style.display = 'block';
+
+    // ensure the user is at the top of the page
+    document.body.scrollTop = document.documentElement.scrollTop = 0;
+
+    this.update(false);
+
+    this.initPointerLock();
+
+    this.update(true);
   },
 
   update: function(animationFrame) {

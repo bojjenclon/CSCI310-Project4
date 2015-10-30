@@ -540,7 +540,7 @@ EntityFactory = Class({
         potato.steaming.particles.vertices.push(particle);
       }
 
-      var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + '/gfx/smoketex.jpg');
+      var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/smoketex.jpg');
       var smokeMaterial = new THREE.PointCloudMaterial({
         map: smokeTexture,
         transparent: true,
@@ -676,7 +676,7 @@ EntityFactory = Class({
         fry.steaming.particles.vertices.push(particle);
       }
 
-      var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + '/gfx/smoketex.jpg');
+      var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/smoketex.jpg');
       var smokeMaterial = new THREE.PointCloudMaterial({
         map: smokeTexture,
         transparent: true,
@@ -710,20 +710,19 @@ EntityFactory = Class({
 
     ground.drawable.scene = options.scene;
 
-    var mainTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_COLOR.jpg');
+    var mainTex = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/brick-floor-tileable_COLOR.jpg');
     mainTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
-    var diffuseTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_DISP.jpg');
+    var diffuseTex = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/brick-floor-tileable_DISP.jpg');
     diffuseTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
-    var specularTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_SPEC.jpg');
+    var specularTex = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/brick-floor-tileable_SPEC.jpg');
     specularTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
 
     ground.drawable.mesh = new Physijs.BoxMesh(
       new THREE.BoxGeometry(options.width, 1, options.height),
       new THREE.MeshPhongMaterial({
-        map: ResourceManager.instance.getTexture('gfx/brick-floor-tileable_COLOR.jpg'),
-        displacementMap: ResourceManager.instance.getTexture('gfx/brick-floor-tileable_DISP.jpg'),
-        specularMap: ResourceManager.instance.getTexture('gfx/brick-floor-tileable_SPEC.jpg')
-          //color: 0x00ff00
+        map: mainTex,
+        displacementMap: diffuseTex,
+        specularMap: specularTex
       }), 0);
     ground.drawable.mesh.entity = ground;
 
