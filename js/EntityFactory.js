@@ -38,7 +38,10 @@ EntityFactory = Class({
       //player.drawable.mesh.rotation.copy(options.rotation);
 
       player.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.player;
-      player.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.enemyBullet;
+      player.drawable.mesh._physijs.collision_masks = (
+        EntityFactory.COLLISION_TYPES.obstacle |
+        EntityFactory.COLLISION_TYPES.enemy |
+        EntityFactory.COLLISION_TYPES.enemyBullet);
 
       player.drawable.scene.add(player.drawable.mesh);
 
@@ -113,7 +116,12 @@ EntityFactory = Class({
       enemy.drawable.mesh.entity = enemy;
 
       enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
-      enemy.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+      enemy.drawable.mesh._physijs.collision_masks = (
+        EntityFactory.COLLISION_TYPES.obstacle |
+        EntityFactory.COLLISION_TYPES.player |
+        EntityFactory.COLLISION_TYPES.enemy |
+        EntityFactory.COLLISION_TYPES.playerBullet |
+        EntityFactory.COLLISION_TYPES.enemyBullet);
 
       enemy.drawable.mesh.position.copy(options.position);
       //enemy.drawable.mesh.rotation.copy(options.rotation);
@@ -131,11 +139,11 @@ EntityFactory = Class({
 
       enemy.health.hp = enemy.health.maxHP = options.hp || 15;
       enemy.health.healthBar = new THREE.Mesh(
-        new THREE.BoxGeometry(10, 1.5, 0.5),
+        new THREE.BoxGeometry(14, 1.5, 0.5),
         new THREE.MeshBasicMaterial({
           color: 0x00ff00
         }));
-      enemy.health.healthBar.position.set(0, 13, 0);
+      enemy.health.healthBar.position.set(0, 25, 0);
       enemy.drawable.mesh.add(enemy.health.healthBar);
 
       enemy.shootDelay.delayTheshold = 1.5;
@@ -302,7 +310,7 @@ EntityFactory = Class({
         var followingPos = this.shootingAt.drawable.mesh.position.clone();
 
         var spawnLocation = parentPos.clone();
-        var spawnOffset = new THREE.Vector3(0, 10, 10);
+        var spawnOffset = new THREE.Vector3(0, 10, 20);
         spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
         spawnLocation.add(spawnOffset);
 
@@ -442,7 +450,12 @@ EntityFactory = Class({
         potato.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
       }
 
-      potato.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+      potato.drawable.mesh._physijs.collision_masks = (
+        EntityFactory.COLLISION_TYPES.obstacle |
+        EntityFactory.COLLISION_TYPES.enemy |
+        EntityFactory.COLLISION_TYPES.player |
+        EntityFactory.COLLISION_TYPES.playerBullet |
+        EntityFactory.COLLISION_TYPES.enemyBullet);
 
       potato.drawable.mesh.position.copy(options.position);
       potato.drawable.mesh.rotation.copy(options.rotation);
@@ -569,7 +582,12 @@ EntityFactory = Class({
         fry.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
       }
 
-      fry.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+      fry.drawable.mesh._physijs.collision_masks = (
+        EntityFactory.COLLISION_TYPES.obstacle |
+        EntityFactory.COLLISION_TYPES.enemy |
+        EntityFactory.COLLISION_TYPES.player |
+        EntityFactory.COLLISION_TYPES.playerBullet |
+        EntityFactory.COLLISION_TYPES.enemyBullet);
 
       fry.drawable.mesh.position.copy(options.position);
       fry.drawable.mesh.rotation.copy(options.rotation);
@@ -691,7 +709,12 @@ EntityFactory = Class({
     ground.drawable.mesh.entity = ground;
 
     ground.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
-    ground.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+    ground.drawable.mesh._physijs.collision_masks = (
+      EntityFactory.COLLISION_TYPES.obstacle |
+      EntityFactory.COLLISION_TYPES.player |
+      EntityFactory.COLLISION_TYPES.enemy |
+      EntityFactory.COLLISION_TYPES.playerBullet |
+      EntityFactory.COLLISION_TYPES.enemyBullet);
 
     ground.drawable.scene.add(ground.drawable.mesh);
   }

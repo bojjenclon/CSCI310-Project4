@@ -96,7 +96,7 @@ Game = Class({
       controls: this.controls,
       controlsObject: this.controls.getObject(),
       cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
-      gunOffset: new THREE.Vector3(6, 4, 0),
+      gunOffset: new THREE.Vector3(9, 11, 0),
       hp: 20
     });
 

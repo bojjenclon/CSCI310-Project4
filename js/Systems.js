@@ -48,7 +48,7 @@ PlayerInputSystem = Class({
           entity.cameraFollow.controls.getDirection(direction);
 
           var bulletPos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
-          var bulletOffset = new THREE.Vector3(0, 0, -30);
+          var bulletOffset = new THREE.Vector3(0, 0.4, -25);
 
           var rotationMatrix = entity.velocity.rotationMatrix.clone();
           var yMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.controls.pitchObject.matrix);
@@ -104,7 +104,7 @@ PlayerInputSystem = Class({
 
             var bulletDirection = baseDirection.clone();
             bulletDirection.x += Utils.randomRange(-0.2, 0.2);
-            bulletDirection.y += Utils.randomRange(-0.1, 0.1);
+            bulletDirection.y += Utils.randomRange(-0.1, 0.2);
             bulletDirection.z += Utils.randomRange(-0.2, 0.2);
 
             EntityFactory.instance.makeFry({
