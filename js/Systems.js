@@ -60,7 +60,7 @@ PlayerInputSystem = Class({
           var bulletRot = entity.cameraFollow.object.rotation.clone();
           bulletRot.y += 90 * Math.PI / 180;
 
-          EntityFactory.instance.makeBullet({
+          EntityFactory.instance.makePotato({
             scene: entity.drawable.scene,
             position: bulletPos,
             rotation: bulletRot,
@@ -78,19 +78,45 @@ PlayerInputSystem = Class({
           Globals.instance.reloadingElement.style.visibility = "visible";
         }
         else if (MouseController.instance.wasPressed.right) {
-          var direction = new THREE.Vector3();
-          entity.cameraFollow.controls.getDirection(direction);
+          var baseDirection = new THREE.Vector3();
+          entity.cameraFollow.controls.getDirection(baseDirection);
 
-          EntityFactory.instance.makeBullet({
-            scene: entity.drawable.scene,
-            position: entity.cameraFollow.object.position.clone(),
-            rotation: entity.cameraFollow.object.rotation.clone(),
-            scale: new THREE.Vector3(0.5, 0.5, 0.5),
-            direction: direction,
-            rotationMatrix: entity.velocity.rotationMatrix,
-            velocity: 6,
-            owner: 'player'
-          });
+          var basePos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
+
+          var rotationMatrix = entity.velocity.rotationMatrix.clone();
+          var yMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.controls.pitchObject.matrix);
+          rotationMatrix.multiply(yMatrix);
+
+          var bulletRot = entity.cameraFollow.object.rotation.clone();
+          bulletRot.y += 90 * Math.PI / 180;
+
+          for (var i = 0; i < Utils.randomRange(4, 9); i++) {
+            var bulletPos = basePos.clone();
+            var bulletOffset = new THREE.Vector3(Utils.randomRange(-1, 1), Utils.randomRange(-1, 1), -30);
+
+            bulletOffset.applyMatrix4(rotationMatrix);
+            bulletPos.add(bulletOffset);
+
+            var piOver2 = Math.PI / 2;
+
+            bulletRot.x += Utils.randomRange(-piOver2, piOver2);
+            bulletRot.z += Utils.randomRange(-piOver2, piOver2);
+
+            var bulletDirection = baseDirection.clone();
+            bulletDirection.x += Utils.randomRange(-0.2, 0.2);
+            bulletDirection.y += Utils.randomRange(-0.1, 0.1);
+            bulletDirection.z += Utils.randomRange(-0.2, 0.2);
+
+            EntityFactory.instance.makeFry({
+              scene: entity.drawable.scene,
+              position: bulletPos,
+              rotation: bulletRot,
+              direction: bulletDirection,
+              rotationMatrix: entity.velocity.rotationMatrix,
+              velocity: 0.5,
+              owner: 'player'
+            });
+          }
 
           entity.shootDelay.canShoot = false;
 

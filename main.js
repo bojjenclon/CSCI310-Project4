@@ -57,7 +57,8 @@ function init() {
     modelsToPreload: [
       "models/potato.json",
       "models/potatoCannon.json",
-      "models/character.json"
+      "models/character.json",
+      "models/fry.json"
     ]
   };
   game = new Game(gameOptions);

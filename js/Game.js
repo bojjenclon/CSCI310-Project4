@@ -96,21 +96,24 @@ Game = Class({
       controls: this.controls,
       controlsObject: this.controls.getObject(),
       cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
-      gunOffset: new THREE.Vector3(6, 4, 0)
+      gunOffset: new THREE.Vector3(6, 4, 0),
+      hp: 20
     });
 
     EntityFactory.instance.makeEnemy({
       scene: this.scene,
       position: new THREE.Vector3(0, 30, -200),
       aiTarget: this.player,
-      bulletSpeed: Math.random() * (60 - 15) + 15
+      bulletSpeed: Math.random() * (60 - 15) + 15,
+      hp: 15
     });
 
     EntityFactory.instance.makeEnemy({
       scene: this.scene,
       position: new THREE.Vector3(-100, 30, -150),
       aiTarget: this.player,
-      bulletSpeed: Math.random() * (60 - 15) + 15
+      bulletSpeed: Math.random() * (60 - 15) + 15,
+      hp: 15
     });
 
     /* Setup Systems */
@@ -181,7 +184,7 @@ Game = Class({
         system.update(dt);
       });
 
-      this.scene.simulate();
+      this.scene.simulate(dt);
 
       this.postPhysicsSystems.forEach(function(system) {
         system.update(dt);

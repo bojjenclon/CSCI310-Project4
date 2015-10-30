@@ -66,6 +66,8 @@ EntityFactory = Class({
         }
       });
 
+      player.health.hp = player.health.maxHP = options.hp || 20;
+
       player.position.x = options.position.x;
       player.position.y = options.position.y;
       player.position.z = options.position.z;
@@ -136,6 +138,7 @@ EntityFactory = Class({
 
       enemy.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(enemy.drawable.mesh.matrix);
 
+      enemy.health.hp = enemy.health.maxHP = options.hp || 15;
       enemy.health.healthBar = new THREE.Mesh(
         new THREE.BoxGeometry(10, 1.5, 0.5),
         new THREE.MeshBasicMaterial({
@@ -260,7 +263,7 @@ EntityFactory = Class({
 
         var distance = parentPos.distanceTo(followingPos);
 
-        if (distance < 0.5) {
+        if (distance < 50) {
           return b3.SUCCESS;
         }
 
@@ -304,22 +307,26 @@ EntityFactory = Class({
           return b3.FAILURE;
         }
 
-        var direction = new THREE.Vector3(0, 0, 1);
-        var rotation = new THREE.Euler(0, 0, 0, "YXZ");
-        rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
-
-        var forward = new THREE.Vector3();
-        forward.copy(direction).applyEuler(rotation);
-
         var parentPos = tick.target.drawable.mesh.position.clone();
         var followingPos = this.shootingAt.drawable.mesh.position.clone();
+
+        var spawnLocation = parentPos.clone();
+        var spawnOffset = new THREE.Vector3(0, 10, 10);
+        spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
+        spawnLocation.add(spawnOffset);
 
         var followingVel = new THREE.Vector3(this.shootingAt.velocity.x, this.shootingAt.velocity.y, this.shootingAt.velocity.z);
         followingVel.multiplyScalar(Globals.instance.dt);
         var predictedPos = followingPos.clone();
         predictedPos.add(followingVel);
 
-        var distance = parentPos.distanceTo(predictedPos);
+        var rotation = new THREE.Euler(0, 0, 0, "YXZ");
+        rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
+
+        var forward = new THREE.Vector3(0, 0, 1);
+        forward.applyEuler(rotation);
+
+        var distance = spawnLocation.distanceTo(followingPos);
 
         var velocity = this.bulletSpeed;
 
@@ -329,18 +336,12 @@ EntityFactory = Class({
         var velOffset = 1 + (velocity / 100);
         forward.y += distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
 
-        var spawnLocation = parentPos.clone();
-        var spawnOffset = new THREE.Vector3(0, 10, 10);
-        spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
-        spawnLocation.add(spawnOffset);
-
-        EntityFactory.instance.makeBullet({
+        EntityFactory.instance.makePotato({
           scene: tick.target.drawable.scene,
           position: spawnLocation,
           rotation: tick.target.drawable.mesh.rotation.clone(),
           scale: new THREE.Vector3(0.5, 0.5, 0.5),
           direction: forward,
-          rotationMatrix: tick.target.velocity.rotationMatrix,
           velocity: velocity,
           owner: 'enemy'
         });
@@ -414,109 +415,110 @@ EntityFactory = Class({
     }.bind(this));
   },
 
-  makeBullet: function(options) {
+  makePotato: function(options) {
     ResourceManager.instance.loadModel('models/potato.json', function(model) {
       model = model.clone();
 
-      var bullet = this.entities.createEntity();
+      var potato = this.entities.createEntity();
 
-      bullet.addTag("bullet");
+      potato.addTag("bullet");
+      potato.addTag("potato");
 
-      bullet.addComponent(C.Identifier);
-      bullet.addComponent(C.Position);
-      bullet.addComponent(C.Drawable);
-      bullet.addComponent(C.Bullet);
-      bullet.addComponent(C.Expirable);
-      bullet.addComponent(C.OneTimeHit);
-      bullet.addComponent(C.Steaming);
+      potato.addComponent(C.Identifier);
+      potato.addComponent(C.Position);
+      potato.addComponent(C.Drawable);
+      potato.addComponent(C.Bullet);
+      potato.addComponent(C.Expirable);
+      potato.addComponent(C.OneTimeHit);
+      potato.addComponent(C.Steaming);
 
-      bullet.identifier.type = Globals.ENTITY_TYPES.bullet;
-      bullet.bullet.owner = options.owner;
+      potato.identifier.type = Globals.ENTITY_TYPES.bullet;
+      potato.bullet.owner = options.owner;
 
-      bullet.drawable.scene = options.scene;
+      potato.drawable.scene = options.scene;
 
-      bullet.drawable.mesh = new Physijs.ConvexMesh(
+      potato.drawable.mesh = new Physijs.ConvexMesh(
         model.geometry,
         Physijs.createMaterial(model.material, 0.7, 0.01),
         0.3);
-      bullet.drawable.mesh.entity = bullet;
+      potato.drawable.mesh.entity = potato;
 
-      // bullets are "hot" when created, so tint them red
-      bullet.drawable.mesh.material.materials.forEach(function(mat) {
+      // potatos are "hot" when created, so tint them red
+      potato.drawable.mesh.material.materials.forEach(function(mat) {
         mat.color.setHex(0xE34D4D);
       });
 
       if (options.owner === 'player') {
-        bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
+        potato.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
       }
       else {
-        bullet.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
+        potato.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
       }
 
-      bullet.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+      potato.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
 
-      bullet.drawable.mesh.position.copy(options.position);
-      bullet.drawable.mesh.rotation.copy(options.rotation);
-      bullet.drawable.mesh.scale.copy(options.scale);
+      potato.drawable.mesh.position.copy(options.position);
+      potato.drawable.mesh.rotation.copy(options.rotation);
+      potato.drawable.mesh.scale.copy(options.scale);
 
-      bullet.drawable.scene.add(bullet.drawable.mesh);
+      potato.drawable.scene.add(potato.drawable.mesh);
 
-      bullet.drawable.mesh.setDamping(0.1, 0);
+      potato.drawable.mesh.setDamping(0.1, 0);
 
-      bullet.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-        if (bullet.bullet.isHot === false) {
+      potato.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+        if (potato.bullet.isHot === false) {
           return;
         }
 
-        var hitPlayer = bullet.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
-        var hitEnemy = bullet.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
+        var hitPlayer = potato.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
+        var hitEnemy = potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
-        if ((hitPlayer || hitEnemy) && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        if ((hitPlayer || hitEnemy) && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
           other_object.entity.addComponent(C.Hurt);
           other_object.entity.hurt.originalColor = other_object.material.color;
 
-          other_object.entity.health.hp--;
+          other_object.entity.health.hp -= 5;
           other_object.entity.health.changed = true;
 
-          bullet.oneTimeHit.alreadyHit.push(other_object.uuid);
+          potato.oneTimeHit.alreadyHit.push(other_object.uuid);
         }
         else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
-          bullet.bullet.touchedGround = true;
+          potato.bullet.touchedGround = true;
         }
-        else if (bullet.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && bullet.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        else if (potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
           Globals.instance.score += 5;
 
           Globals.instance.scoreElement.innerHTML = Globals.instance.score;
 
-          bullet.oneTimeHit.alreadyHit.push(other_object.uuid);
+          potato.oneTimeHit.alreadyHit.push(other_object.uuid);
         }
 
-        bullet.bullet.isHot = false;
+        potato.bullet.isHot = false;
 
-        // the bullet is now "cold," so tint it blue
-        bullet.drawable.mesh.material.materials.forEach(function(mat) {
+        // the potato is now "cold," so tint it blue
+        potato.drawable.mesh.material.materials.forEach(function(mat) {
           mat.color.setHex(0x45B7DE);
         });
       }.bind(this));
 
-      bullet.position.x = options.position.x;
-      bullet.position.y = options.position.y;
-      bullet.position.z = options.position.z;
+      potato.position.x = options.position.x;
+      potato.position.y = options.position.y;
+      potato.position.z = options.position.z;
 
       var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
       vel.multiply(options.direction);
-      bullet.drawable.mesh.applyCentralImpulse(vel);
+      potato.drawable.mesh.applyCentralImpulse(vel);
 
-      bullet.expirable.maxAge = 6;
+      potato.expirable.maxAge = 6;
 
-      bullet.steaming.parent = bullet.drawable.mesh;
-      bullet.steaming.particles = new THREE.Geometry();
+      potato.steaming.parent = potato.drawable.mesh;
+      potato.steaming.particles = new THREE.Geometry();
       for (var i = 0; i < 25; i++) {
         var particle = new THREE.Vector3(
           Math.random() * Utils.randomRange(-2, 2),
           Math.random() * 20,
           Math.random() * Utils.randomRange(-2, 2));
-        bullet.steaming.particles.vertices.push(particle);
+        potato.steaming.particles.vertices.push(particle);
       }
 
       var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + '/gfx/smoketex.jpg');
@@ -529,15 +531,148 @@ EntityFactory = Class({
         color: 0x111111
       });
 
-      bullet.steaming.system = new THREE.PointCloud(bullet.steaming.particles, smokeMaterial);
-      bullet.steaming.system.sortParticles = true;
+      potato.steaming.system = new THREE.PointCloud(potato.steaming.particles, smokeMaterial);
+      potato.steaming.system.sortParticles = true;
 
-      bullet.steaming.container = new THREE.Gyroscope();
-      bullet.steaming.container.add(bullet.steaming.system);
-      bullet.drawable.mesh.add(bullet.steaming.container);
+      potato.steaming.container = new THREE.Gyroscope();
+      potato.steaming.container.add(potato.steaming.system);
+      potato.drawable.mesh.add(potato.steaming.container);
 
       if (options.callback) {
-        options.callback(bullet);
+        options.callback(potato);
+      }
+    }.bind(this));
+  },
+
+  makeFry: function(options) {
+    ResourceManager.instance.loadModel('models/fry.json', function(model) {
+      model = model.clone();
+
+      var fry = this.entities.createEntity();
+
+      fry.addTag("bullet");
+      fry.addTag("fry");
+
+      fry.addComponent(C.Identifier);
+      fry.addComponent(C.Position);
+      fry.addComponent(C.Drawable);
+      fry.addComponent(C.Bullet);
+      fry.addComponent(C.Expirable);
+      fry.addComponent(C.OneTimeHit);
+      fry.addComponent(C.Steaming);
+
+      fry.identifier.type = Globals.ENTITY_TYPES.bullet;
+      fry.bullet.owner = options.owner;
+
+      fry.drawable.scene = options.scene;
+
+      fry.drawable.mesh = new Physijs.ConvexMesh(
+        model.geometry,
+        Physijs.createMaterial(model.material, 0.7, 0.01),
+        0.002);
+      fry.drawable.mesh.entity = fry;
+
+      // fries are "hot" when created, so tint them red
+      fry.drawable.mesh.material.materials.forEach(function(mat) {
+        mat.color.setHex(0xE34D4D);
+      });
+
+      if (options.owner === 'player') {
+        fry.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
+      }
+      else {
+        fry.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
+      }
+
+      fry.drawable.mesh._physijs.collision_masks = EntityFactory.COLLISION_TYPES.obstacle | EntityFactory.COLLISION_TYPES.enemy | EntityFactory.COLLISION_TYPES.player | EntityFactory.COLLISION_TYPES.playerBullet | EntityFactory.COLLISION_TYPES.enemyBullet;
+
+      fry.drawable.mesh.position.copy(options.position);
+      fry.drawable.mesh.rotation.copy(options.rotation);
+      if (options.scale) {
+        fry.drawable.mesh.scale.copy(options.scale);
+      }
+
+      fry.drawable.scene.add(fry.drawable.mesh);
+
+      fry.drawable.mesh.setDamping(0.1, 0);
+
+      fry.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+        if (fry.bullet.isHot === false) {
+          return;
+        }
+
+        var hitPlayer = fry.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
+        var hitEnemy = fry.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
+
+        if ((hitPlayer || hitEnemy) && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+          other_object.entity.addComponent(C.Hurt);
+          other_object.entity.hurt.originalColor = other_object.material.color;
+
+          other_object.entity.health.hp -= 0.5;
+          other_object.entity.health.changed = true;
+
+          fry.oneTimeHit.alreadyHit.push(other_object.uuid);
+        }
+        else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
+          fry.bullet.touchedGround = true;
+        }
+        else if (fry.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+          Globals.instance.score += 5;
+
+          Globals.instance.scoreElement.innerHTML = Globals.instance.score;
+
+          fry.oneTimeHit.alreadyHit.push(other_object.uuid);
+        }
+
+        fry.bullet.isHot = other_object.entity.hasTag("fry");
+
+        if (fry.bullet.isHot === false) {
+          // the fry is now "cold," so tint it blue
+          fry.drawable.mesh.material.materials.forEach(function(mat) {
+            mat.color.setHex(0x45B7DE);
+          });
+        }
+      }.bind(this));
+
+      fry.position.x = options.position.x;
+      fry.position.y = options.position.y;
+      fry.position.z = options.position.z;
+
+      var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
+      vel.multiply(options.direction);
+      fry.drawable.mesh.applyCentralImpulse(vel);
+
+      fry.expirable.maxAge = 6;
+
+      fry.steaming.parent = fry.drawable.mesh;
+      fry.steaming.particles = new THREE.Geometry();
+      for (var i = 0; i < 25; i++) {
+        var particle = new THREE.Vector3(
+          Math.random() * Utils.randomRange(-2, 2),
+          Math.random() * 20,
+          Math.random() * Utils.randomRange(-2, 2));
+        fry.steaming.particles.vertices.push(particle);
+      }
+
+      var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + '/gfx/smoketex.jpg');
+      var smokeMaterial = new THREE.PointCloudMaterial({
+        map: smokeTexture,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        size: 2,
+        color: 0x111111
+      });
+
+      fry.steaming.system = new THREE.PointCloud(fry.steaming.particles, smokeMaterial);
+      fry.steaming.system.sortParticles = true;
+
+      fry.steaming.container = new THREE.Gyroscope();
+      fry.steaming.container.add(fry.steaming.system);
+      fry.drawable.mesh.add(fry.steaming.container);
+
+      if (options.callback) {
+        options.callback(fry);
       }
     }.bind(this));
   },
