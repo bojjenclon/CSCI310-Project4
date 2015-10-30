@@ -64,7 +64,6 @@ PlayerInputSystem = Class({
             scene: entity.drawable.scene,
             position: bulletPos,
             rotation: bulletRot,
-            scale: new THREE.Vector3(0.5, 0.5, 0.5),
             direction: direction,
             rotationMatrix: entity.velocity.rotationMatrix,
             velocity: 35,

@@ -339,7 +339,6 @@ EntityFactory = Class({
           scene: tick.target.drawable.scene,
           position: spawnLocation,
           rotation: tick.target.drawable.mesh.rotation.clone(),
-          scale: new THREE.Vector3(0.5, 0.5, 0.5),
           direction: forward,
           velocity: velocity,
           owner: 'enemy'
@@ -459,7 +458,9 @@ EntityFactory = Class({
 
       potato.drawable.mesh.position.copy(options.position);
       potato.drawable.mesh.rotation.copy(options.rotation);
-      potato.drawable.mesh.scale.copy(options.scale);
+      if (options.scale) {
+        potato.drawable.mesh.scale.copy(options.scale);
+      }
 
       potato.drawable.scene.add(potato.drawable.mesh);
 
