@@ -11,8 +11,6 @@ EntityFactory = Class({
     var player = this.entities.createEntity();
 
     ResourceManager.instance.loadModel('models/character.json', function(model) {
-      model = model.clone();
-
       player.addTag("player");
 
       player.addComponent(C.Identifier);
@@ -96,8 +94,6 @@ EntityFactory = Class({
 
   makeEnemy: function(options) {
     ResourceManager.instance.loadModel('models/character.json', function(model) {
-      model = model.clone();
-
       var enemy = this.entities.createEntity();
 
       enemy.addTag("enemy");
@@ -386,8 +382,6 @@ EntityFactory = Class({
 
   makeGun: function(options) {
     ResourceManager.instance.loadModel('models/potatoCannon.json', function(model) {
-      model = model.clone();
-
       var gun = this.entities.createEntity();
 
       gun.addComponent(C.Position);
@@ -396,7 +390,7 @@ EntityFactory = Class({
       gun.drawable.scene = options.parent;
       gun.drawable.mesh = new THREE.Mesh(
         model.geometry,
-        model.material);
+        model.material.clone());
 
       gun.drawable.mesh.position.copy(options.offset);
 
@@ -417,8 +411,6 @@ EntityFactory = Class({
 
   makePotato: function(options) {
     ResourceManager.instance.loadModel('models/potato.json', function(model) {
-      model = model.clone();
-
       var potato = this.entities.createEntity();
 
       potato.addTag("bullet");
@@ -437,9 +429,9 @@ EntityFactory = Class({
 
       potato.drawable.scene = options.scene;
 
-      potato.drawable.mesh = new Physijs.ConvexMesh(
+      potato.drawable.mesh = new Physijs.CapsuleMesh(
         model.geometry,
-        Physijs.createMaterial(model.material, 0.7, 0.01),
+        Physijs.createMaterial(model.material.clone(), 0.7, 0.01),
         0.3);
       potato.drawable.mesh.entity = potato;
 
@@ -546,8 +538,6 @@ EntityFactory = Class({
 
   makeFry: function(options) {
     ResourceManager.instance.loadModel('models/fry.json', function(model) {
-      model = model.clone();
-
       var fry = this.entities.createEntity();
 
       fry.addTag("bullet");
@@ -566,9 +556,9 @@ EntityFactory = Class({
 
       fry.drawable.scene = options.scene;
 
-      fry.drawable.mesh = new Physijs.ConvexMesh(
+      fry.drawable.mesh = new Physijs.BoxMesh(
         model.geometry,
-        Physijs.createMaterial(model.material, 0.7, 0.01),
+        Physijs.createMaterial(model.material.clone(), 0.7, 0.01),
         0.002);
       fry.drawable.mesh.entity = fry;
 
