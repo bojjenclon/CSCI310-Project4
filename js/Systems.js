@@ -129,6 +129,12 @@ PlayerInputSystem = Class({
           Globals.instance.reloadImg.move_to(0);
           Globals.instance.reloadImg.play();
           Globals.instance.reloadingElement.style.visibility = "visible";
+
+          var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
+          sound.setPosition(basePos);
+          sound.setVelocity(velocity);
+          sound.setOrientation(baseDirection);
+          sound.play();
         }
       }
     }.bind(this));
@@ -198,9 +204,9 @@ CameraFollowSystem = Class({
   update: function(dt) {
     var follows = this.entities.queryComponents([C.CameraFollow, C.Position, C.Velocity]);
 
-    /*if (follows.length > 1) {
+    if (follows.length > 1) {
       throw new Error("The camera can only follow one object at a time!");
-    }*/
+    }
 
     follows.forEach(function(entity) {
       if (entity.velocity.rotationMatrix === null) {

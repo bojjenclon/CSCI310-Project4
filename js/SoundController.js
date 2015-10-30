@@ -46,6 +46,10 @@ Sound = Class({
     this.panner.setOrientation(orientation.x, orientation.y, orientation.z);
   },
 
+  setVolume: function(volume) {
+    this.volume.gain = volume;
+  },
+
   play: function(startTime) {
     this.source = this.context.createBufferSource();
     this.source.buffer = this.buffer;

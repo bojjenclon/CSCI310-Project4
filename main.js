@@ -64,7 +64,10 @@ function init() {
     ],
     soundsToPreload: [
       "sfx/arrowlessBow.mp3",
-      "sfx/hitSplat.wav"
+      "sfx/hitSplat.wav",
+      "sfx/hurt1.mp3",
+      "sfx/hurt2.mp3",
+      "sfx/hurt3.mp3"
     ],
     texturesToPreload: [
       'gfx/brick-floor-tileable_COLOR.jpg',

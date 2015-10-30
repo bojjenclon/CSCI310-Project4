@@ -60,6 +60,25 @@ EntityFactory = Class({
           player.health.hp--;
           player.health.changed = true;
         }
+        else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && player.hasComponent(C.Hurt) === false) {
+          var hitSounds = [
+            Globals.DIR + "sfx/hurt1.mp3",
+            Globals.DIR + "sfx/hurt2.mp3",
+            Globals.DIR + "sfx/hurt3.mp3"
+          ];
+
+          var soundPos = new THREE.Vector3().setFromMatrixPosition(player.drawable.mesh.matrixWorld);
+          var soundVel = new THREE.Vector3(player.velocity.x, player.velocity.y, player.velocity.z);
+          var soundDir = new THREE.Vector3();
+          player.cameraFollow.controls.getDirection(soundDir);
+          var soundIndex = Math.floor(Utils.randomRange(0, hitSounds.length));
+
+          var sound = Globals.instance.sound.getSound(hitSounds[soundIndex]);
+          sound.setPosition(soundPos);
+          sound.setVelocity(soundVel);
+          sound.setOrientation(soundDir);
+          sound.play();
+        }
       });
 
       player.health.hp = player.health.maxHP = options.hp || 20;
@@ -130,6 +149,33 @@ EntityFactory = Class({
 
       enemy.drawable.mesh.setDamping(0.99, 0);
       enemy.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 1, 0));
+
+      enemy.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+        if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'player' && enemy.hasComponent(C.Hurt) === false) {
+          var hitSounds = [
+            Globals.DIR + "sfx/hurt1.mp3",
+            Globals.DIR + "sfx/hurt2.mp3",
+            Globals.DIR + "sfx/hurt3.mp3"
+          ];
+
+          var soundPos = new THREE.Vector3().setFromMatrixPosition(enemy.drawable.mesh.matrixWorld);
+          var soundVel = new THREE.Vector3(enemy.velocity.x, enemy.velocity.y, enemy.velocity.z);
+          var soundIndex = Math.floor(Utils.randomRange(0, hitSounds.length));
+
+          var direction = new THREE.Vector3(0, 0, -1);
+          var rotation = new THREE.Euler(0, 0, 0, "YXZ");
+          rotation.set(enemy.drawable.mesh.rotation.x, enemy.drawable.mesh.rotation.y, 0);
+
+          var forward = new THREE.Vector3();
+          forward.copy(direction).applyEuler(rotation);
+
+          var sound = Globals.instance.sound.getSound(hitSounds[soundIndex]);
+          sound.setPosition(soundPos);
+          sound.setVelocity(soundVel);
+          sound.setOrientation(forward);
+          sound.play();
+        }
+      });
 
       enemy.position.x = options.position.x;
       enemy.position.y = options.position.y;
