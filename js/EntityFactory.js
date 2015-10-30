@@ -27,11 +27,6 @@ EntityFactory = Class({
 
       player.drawable.scene = options.scene;
 
-      /*player.drawable.mesh = new Physijs.BoxMesh(
-        new THREE.BoxGeometry(2, 8, 2),
-        Physijs.createMaterial(new THREE.MeshBasicMaterial({
-          color: 0xffff00
-        }), 0.9, 0.01), EntityFactory.MASS.player);*/
       player.drawable.mesh = new Physijs.CapsuleMesh(
         model.geometry,
         Physijs.createMaterial(new THREE.MeshBasicMaterial({
@@ -465,9 +460,9 @@ EntityFactory = Class({
         var hitPlayer = potato.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
         var hitEnemy = potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
-        if ((hitPlayer || hitEnemy) && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
           other_object.entity.addComponent(C.Hurt);
-          other_object.entity.hurt.originalColor = other_object.material.color;
+          other_object.entity.hurt.originalColor = other_object.material.color.clone();
 
           other_object.entity.health.hp -= 5;
           other_object.entity.health.changed = true;
@@ -594,11 +589,11 @@ EntityFactory = Class({
         var hitPlayer = fry.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
         var hitEnemy = fry.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
-        if ((hitPlayer || hitEnemy) && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
           other_object.entity.addComponent(C.Hurt);
-          other_object.entity.hurt.originalColor = other_object.material.color;
+          other_object.entity.hurt.originalColor = other_object.material.color.clone();
 
-          other_object.entity.health.hp -= 0.5;
+          other_object.entity.health.hp -= 1;
           other_object.entity.health.changed = true;
 
           fry.oneTimeHit.alreadyHit.push(other_object.uuid);
