@@ -1,6 +1,7 @@
 var EntityManager = require('tiny-ecs').EntityManager;
-var C = require('./Components.js');
 var b3 = require('./../b3core.0.1.0.js');
+var Utils = require('./Utils.js');
+var C = require('./Components.js');
 
 EntityFactory = Class({
   constructor: function() {
@@ -10,748 +11,742 @@ EntityFactory = Class({
   makePlayer: function(options) {
     var player = this.entities.createEntity();
 
-    ResourceManager.instance.loadModel('models/character.json', function(model) {
-      player.addTag("player");
+    player.addTag("player");
 
-      player.addComponent(C.Identifier);
-      player.addComponent(C.Position);
-      player.addComponent(C.Velocity);
-      player.addComponent(C.Jump);
-      player.addComponent(C.Drawable);
-      player.addComponent(C.CameraFollow);
-      player.addComponent(C.ShootDelay);
-      player.addComponent(C.Health);
-      player.addComponent(C.Gun);
-      player.addComponent(C.Ammo);
+    player.addComponent(C.Identifier);
+    player.addComponent(C.Position);
+    player.addComponent(C.Velocity);
+    player.addComponent(C.Jump);
+    player.addComponent(C.Drawable);
+    player.addComponent(C.CameraFollow);
+    player.addComponent(C.ShootDelay);
+    player.addComponent(C.Health);
+    player.addComponent(C.Gun);
+    player.addComponent(C.Ammo);
 
-      player.identifier.type = Globals.ENTITY_TYPES.player;
+    player.identifier.type = Globals.ENTITY_TYPES.player;
 
-      player.drawable.scene = options.scene;
+    var model = ResourceManager.instance.getModel('models/character.json').clone();
 
-      player.drawable.mesh = new Physijs.CapsuleMesh(
-        model.geometry,
-        Physijs.createMaterial(new THREE.MeshBasicMaterial({
-          color: 0xffff00
-        }), 0.9, 0.01), EntityFactory.MASS.player);
-      player.drawable.mesh.entity = player;
+    player.drawable.scene = options.scene;
 
-      player.drawable.mesh.position.copy(options.position);
-      //player.drawable.mesh.rotation.copy(options.rotation);
+    player.drawable.mesh = new Physijs.CapsuleMesh(
+      model.geometry,
+      Physijs.createMaterial(new THREE.MeshBasicMaterial({
+        color: 0xffff00
+      }), 0.9, 0.01), EntityFactory.MASS.player);
+    player.drawable.mesh.entity = player;
 
-      player.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.player;
-      player.drawable.mesh._physijs.collision_masks = (
-        EntityFactory.COLLISION_TYPES.obstacle |
-        EntityFactory.COLLISION_TYPES.enemy |
-        EntityFactory.COLLISION_TYPES.enemyBullet);
+    player.drawable.mesh.position.copy(options.position);
+    //player.drawable.mesh.rotation.copy(options.rotation);
 
-      player.drawable.scene.add(player.drawable.mesh);
+    player.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.player;
+    player.drawable.mesh._physijs.collision_masks = (
+      EntityFactory.COLLISION_TYPES.obstacle |
+      EntityFactory.COLLISION_TYPES.enemy |
+      EntityFactory.COLLISION_TYPES.enemyBullet);
 
-      player.drawable.mesh.setDamping(0.99, 0);
-      player.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 0, 0));
+    player.drawable.scene.add(player.drawable.mesh);
 
-      player.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-        if (contact_normal.y < 0 && other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
-          player.jump.canJump = true;
-        }
+    player.drawable.mesh.setDamping(0.99, 0);
+    player.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 0, 0));
 
-        if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy && player.hasComponent(C.Hurt) === false) {
-          player.addComponent(C.Hurt);
-          player.hurt.originalColor = player.drawable.mesh.material.color;
+    player.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+      if (contact_normal.y < 0 && other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
+        player.jump.canJump = true;
+      }
 
-          player.health.hp--;
-          player.health.changed = true;
-        }
-        else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && player.hasComponent(C.Hurt) === false) {
-          var hitSounds = [
-            Globals.DIR + "sfx/hurt1.mp3",
-            Globals.DIR + "sfx/hurt2.mp3",
-            Globals.DIR + "sfx/hurt3.mp3"
-          ];
+      if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy && player.hasComponent(C.Hurt) === false) {
+        player.addComponent(C.Hurt);
+        player.hurt.originalColor = player.drawable.mesh.material.color;
 
-          var soundPos = new THREE.Vector3().setFromMatrixPosition(player.drawable.mesh.matrixWorld);
-          var soundVel = new THREE.Vector3(player.velocity.x, player.velocity.y, player.velocity.z);
-          var soundDir = new THREE.Vector3();
-          player.cameraFollow.controls.getDirection(soundDir);
-          var soundIndex = Math.floor(Utils.randomRange(0, hitSounds.length));
+        player.health.hp--;
+        player.health.changed = true;
+      }
+      else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && player.hasComponent(C.Hurt) === false) {
+        var hitSounds = [
+          "sfx/hurt1.mp3",
+          "sfx/hurt2.mp3",
+          "sfx/hurt3.mp3"
+        ];
 
-          var sound = Globals.instance.sound.getSound(hitSounds[soundIndex]);
-          sound.setPosition(soundPos);
-          sound.setVelocity(soundVel);
-          sound.setOrientation(soundDir);
-          sound.play();
-        }
-      });
+        var soundPos = new THREE.Vector3().setFromMatrixPosition(player.drawable.mesh.matrixWorld);
+        var soundVel = new THREE.Vector3(player.velocity.x, player.velocity.y, player.velocity.z);
+        var soundDir = new THREE.Vector3();
+        player.cameraFollow.controls.getDirection(soundDir);
+        var soundIndex = Math.floor(Utils.randomRange(0, hitSounds.length));
 
-      player.health.hp = player.health.maxHP = options.hp || 20;
+        var sound = Globals.instance.sound.getSound(hitSounds[soundIndex]);
+        sound.setPosition(soundPos);
+        sound.setVelocity(soundVel);
+        sound.setOrientation(soundDir);
+        sound.play();
+      }
+    });
 
-      player.position.x = options.position.x;
-      player.position.y = options.position.y;
-      player.position.z = options.position.z;
+    player.health.hp = player.health.maxHP = options.hp || 20;
 
-      player.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(player.drawable.mesh.matrix);
+    player.position.x = options.position.x;
+    player.position.y = options.position.y;
+    player.position.z = options.position.z;
 
-      player.cameraFollow.controls = options.controls;
-      player.cameraFollow.object = options.controlsObject;
-      player.cameraFollow.offset = options.cameraOffset;
+    player.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(player.drawable.mesh.matrix);
 
-      player.shootDelay.delayTheshold = 1.5;
+    player.cameraFollow.controls = options.controls;
+    player.cameraFollow.object = options.controlsObject;
+    player.cameraFollow.offset = options.cameraOffset;
 
-      this.makeGun({
-        parent: player.drawable.mesh,
-        cameraControls: options.controls,
-        offset: options.gunOffset,
-        callback: function(gun) {
-          player.gun.entity = gun;
-          player.gun.mesh = gun.drawable.mesh;
-          player.gun.type = Game.GUN_TYPES.potatoCannon;
+    player.shootDelay.delayTheshold = 1.5;
 
-          player.ammo.currentAmmo[Game.GUN_TYPES.potatoCannon] = 54;
-          player.ammo.currentAmmo[Game.GUN_TYPES.scatterFries] = 72;
+    var gun = this.makeGun({
+      parent: player.drawable.mesh,
+      cameraControls: options.controls,
+      offset: options.gunOffset
+    });
 
-          player.ammo.maxAmmo[Game.GUN_TYPES.potatoCannon] = 54;
-          player.ammo.maxAmmo[Game.GUN_TYPES.scatterFries] = 72;
+    player.gun.entity = gun;
+    player.gun.mesh = gun.drawable.mesh;
+    player.gun.type = Game.GUN_TYPES.potatoCannon;
 
-          Globals.instance.ammoElement.innerHTML = (player.ammo.currentAmmo[player.gun.type] + ' / ' + player.ammo.maxAmmo[player.gun.type]);
-        }
-      });
+    player.ammo.currentAmmo[Game.GUN_TYPES.potatoCannon] = 54;
+    player.ammo.currentAmmo[Game.GUN_TYPES.scatterFries] = 72;
 
-    }.bind(this));
+    player.ammo.maxAmmo[Game.GUN_TYPES.potatoCannon] = 54;
+    player.ammo.maxAmmo[Game.GUN_TYPES.scatterFries] = 72;
+
+    Globals.instance.ammoElement.innerHTML = (player.ammo.currentAmmo[player.gun.type] + ' / ' + player.ammo.maxAmmo[player.gun.type]);
 
     return player;
   },
 
   makeEnemy: function(options) {
-    ResourceManager.instance.loadModel('models/character.json', function(model) {
-      var enemy = this.entities.createEntity();
+    var enemy = this.entities.createEntity();
 
-      enemy.addTag("enemy");
+    enemy.addTag("enemy");
 
-      enemy.addComponent(C.Identifier);
-      enemy.addComponent(C.Position);
-      enemy.addComponent(C.Velocity);
-      enemy.addComponent(C.Drawable);
-      enemy.addComponent(C.Health);
-      enemy.addComponent(C.ShootDelay);
-      enemy.addComponent(C.AI);
+    enemy.addComponent(C.Identifier);
+    enemy.addComponent(C.Position);
+    enemy.addComponent(C.Velocity);
+    enemy.addComponent(C.Drawable);
+    enemy.addComponent(C.Health);
+    enemy.addComponent(C.ShootDelay);
+    enemy.addComponent(C.AI);
 
-      enemy.identifier.type = Globals.ENTITY_TYPES.enemy;
+    enemy.identifier.type = Globals.ENTITY_TYPES.enemy;
 
-      enemy.drawable.scene = options.scene;
+    var model = ResourceManager.instance.getModel('models/character.json').clone();
 
-      enemy.drawable.mesh = new Physijs.CapsuleMesh(
-        model.geometry,
-        Physijs.createMaterial(new THREE.MeshPhongMaterial({
-          color: 0x0000ff
-        }), 0.9, 0.1), EntityFactory.MASS.enemy);
-      enemy.drawable.mesh.entity = enemy;
+    enemy.drawable.scene = options.scene;
 
-      enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
-      enemy.drawable.mesh._physijs.collision_masks = (
-        EntityFactory.COLLISION_TYPES.obstacle |
-        EntityFactory.COLLISION_TYPES.player |
-        EntityFactory.COLLISION_TYPES.enemy |
-        EntityFactory.COLLISION_TYPES.playerBullet |
-        EntityFactory.COLLISION_TYPES.enemyBullet);
+    enemy.drawable.mesh = new Physijs.CapsuleMesh(
+      model.geometry,
+      Physijs.createMaterial(new THREE.MeshPhongMaterial({
+        color: 0x0000ff
+      }), 0.9, 0.1), EntityFactory.MASS.enemy);
+    enemy.drawable.mesh.entity = enemy;
 
-      enemy.drawable.mesh.position.copy(options.position);
-      //enemy.drawable.mesh.rotation.copy(options.rotation);
+    enemy.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemy;
+    enemy.drawable.mesh._physijs.collision_masks = (
+      EntityFactory.COLLISION_TYPES.obstacle |
+      EntityFactory.COLLISION_TYPES.player |
+      EntityFactory.COLLISION_TYPES.enemy |
+      EntityFactory.COLLISION_TYPES.playerBullet |
+      EntityFactory.COLLISION_TYPES.enemyBullet);
 
-      enemy.drawable.scene.add(enemy.drawable.mesh);
+    enemy.drawable.mesh.position.copy(options.position);
+    //enemy.drawable.mesh.rotation.copy(options.rotation);
 
-      enemy.drawable.mesh.setDamping(0.99, 0);
-      enemy.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 1, 0));
+    enemy.drawable.scene.add(enemy.drawable.mesh);
 
-      enemy.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-        if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'player' && enemy.hasComponent(C.Hurt) === false) {
-          var hitSounds = [
-            Globals.DIR + "sfx/hurt1.mp3",
-            Globals.DIR + "sfx/hurt2.mp3",
-            Globals.DIR + "sfx/hurt3.mp3"
-          ];
+    enemy.drawable.mesh.setDamping(0.99, 0);
+    enemy.drawable.mesh.setAngularFactor(new THREE.Vector3(0, 1, 0));
 
-          var soundPos = new THREE.Vector3().setFromMatrixPosition(enemy.drawable.mesh.matrixWorld);
-          var soundVel = new THREE.Vector3(enemy.velocity.x, enemy.velocity.y, enemy.velocity.z);
-          var soundIndex = Math.floor(Utils.randomRange(0, hitSounds.length));
+    enemy.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+      if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'player' && enemy.hasComponent(C.Hurt) === false) {
+        var hitSounds = [
+          "sfx/hurt1.mp3",
+          "sfx/hurt2.mp3",
+          "sfx/hurt3.mp3"
+        ];
 
-          var direction = new THREE.Vector3(0, 0, -1);
-          var rotation = new THREE.Euler(0, 0, 0, "YXZ");
-          rotation.set(enemy.drawable.mesh.rotation.x, enemy.drawable.mesh.rotation.y, 0);
+        var soundPos = new THREE.Vector3().setFromMatrixPosition(enemy.drawable.mesh.matrixWorld);
+        var soundVel = new THREE.Vector3(enemy.velocity.x, enemy.velocity.y, enemy.velocity.z);
+        var soundIndex = Math.floor(Utils.randomRange(0, hitSounds.length));
 
-          var forward = new THREE.Vector3();
-          forward.copy(direction).applyEuler(rotation);
+        var direction = new THREE.Vector3(0, 0, -1);
+        var rotation = new THREE.Euler(0, 0, 0, "YXZ");
+        rotation.set(enemy.drawable.mesh.rotation.x, enemy.drawable.mesh.rotation.y, 0);
 
-          var sound = Globals.instance.sound.getSound(hitSounds[soundIndex]);
-          sound.setPosition(soundPos);
-          sound.setVelocity(soundVel);
-          sound.setOrientation(forward);
-          sound.play();
-        }
-      });
+        var forward = new THREE.Vector3();
+        forward.copy(direction).applyEuler(rotation);
 
-      enemy.position.x = options.position.x;
-      enemy.position.y = options.position.y;
-      enemy.position.z = options.position.z;
+        var sound = Globals.instance.sound.getSound(hitSounds[soundIndex]);
+        sound.setPosition(soundPos);
+        sound.setVelocity(soundVel);
+        sound.setOrientation(forward);
+        sound.play();
+      }
+    });
 
-      enemy.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(enemy.drawable.mesh.matrix);
+    enemy.position.x = options.position.x;
+    enemy.position.y = options.position.y;
+    enemy.position.z = options.position.z;
 
-      enemy.health.hp = enemy.health.maxHP = options.hp || 15;
-      enemy.health.healthBar = new THREE.Mesh(
-        new THREE.BoxGeometry(14, 1.5, 0.5),
-        new THREE.MeshBasicMaterial({
-          color: 0x00ff00
-        }));
-      enemy.health.healthBar.position.set(0, 25, 0);
-      enemy.drawable.mesh.add(enemy.health.healthBar);
+    enemy.velocity.rotationMatrix = new THREE.Matrix4().extractRotation(enemy.drawable.mesh.matrix);
 
-      enemy.shootDelay.delayTheshold = 1.5;
+    enemy.health.hp = enemy.health.maxHP = options.hp || 15;
+    enemy.health.healthBar = new THREE.Mesh(
+      new THREE.BoxGeometry(14, 1.5, 0.5),
+      new THREE.MeshBasicMaterial({
+        color: 0x00ff00
+      }));
+    enemy.health.healthBar.position.set(0, 25, 0);
+    enemy.drawable.mesh.add(enemy.health.healthBar);
 
-      options.bulletSpeed = THREE.Math.clamp(options.bulletSpeed, EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy);
+    enemy.shootDelay.delayTheshold = 1.5;
 
-      var FaceNode = b3.Class(b3.Action);
-      FaceNode.prototype.name = 'FaceNode';
-      FaceNode.prototype.parameters = {
-        'facing': null
-      };
+    options.bulletSpeed = THREE.Math.clamp(options.bulletSpeed, EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy);
 
-      FaceNode.prototype.__Action_initialize = FaceNode.prototype.initialize;
-      FaceNode.prototype.initialize = function(settings) {
-        settings = settings || {};
+    var FaceNode = b3.Class(b3.Action);
+    FaceNode.prototype.name = 'FaceNode';
+    FaceNode.prototype.parameters = {
+      'facing': null
+    };
 
-        this.__Action_initialize();
+    FaceNode.prototype.__Action_initialize = FaceNode.prototype.initialize;
+    FaceNode.prototype.initialize = function(settings) {
+      settings = settings || {};
 
-        this.facing = settings.facing;
-      };
+      this.__Action_initialize();
 
-      FaceNode.prototype.tick = function(tick) {
-        if (this.facing._manager === null || this.facing._manager === undefined) {
-          return b3.FAILURE;
-        }
+      this.facing = settings.facing;
+    };
 
-        // http://forum.unity3d.com/threads/making-an-object-rotate-to-face-another.1211/
-        // http://answers.unity3d.com/questions/503934/chow-to-check-if-an-object-is-facing-another.html
+    FaceNode.prototype.tick = function(tick) {
+      if (this.facing._manager === null || this.facing._manager === undefined) {
+        return b3.FAILURE;
+      }
 
-        var parentPos = tick.target.drawable.mesh.position.clone();
-        var followingPos = this.facing.drawable.mesh.position.clone();
+      // http://forum.unity3d.com/threads/making-an-object-rotate-to-face-another.1211/
+      // http://answers.unity3d.com/questions/503934/chow-to-check-if-an-object-is-facing-another.html
 
-        var posDif = parentPos.clone();
-        posDif.sub(followingPos);
+      var parentPos = tick.target.drawable.mesh.position.clone();
+      var followingPos = this.facing.drawable.mesh.position.clone();
 
-        var forward = new THREE.Vector3(0, 0, -1);
-        forward.applyMatrix4(tick.target.velocity.rotationMatrix);
+      var posDif = parentPos.clone();
+      posDif.sub(followingPos);
 
-        var angle = forward.angleTo(posDif) * 180 / Math.PI;
+      var forward = new THREE.Vector3(0, 0, -1);
+      forward.applyMatrix4(tick.target.velocity.rotationMatrix);
 
-        if (Math.abs(angle) <= 5) {
-          return b3.SUCCESS;
-        }
+      var angle = forward.angleTo(posDif) * 180 / Math.PI;
 
-        var lookAtMatrix = new THREE.Matrix4();
-        lookAtMatrix.lookAt(followingPos, parentPos, new THREE.Vector3(0, 1, 0));
+      if (Math.abs(angle) <= 5) {
+        return b3.SUCCESS;
+      }
 
-        var parentRotation = new THREE.Quaternion().setFromEuler(tick.target.drawable.mesh.rotation);
-        var targetRotation = new THREE.Quaternion().setFromRotationMatrix(lookAtMatrix);
+      var lookAtMatrix = new THREE.Matrix4();
+      lookAtMatrix.lookAt(followingPos, parentPos, new THREE.Vector3(0, 1, 0));
 
-        var str = Math.min(3 * Globals.instance.dt, 5);
+      var parentRotation = new THREE.Quaternion().setFromEuler(tick.target.drawable.mesh.rotation);
+      var targetRotation = new THREE.Quaternion().setFromRotationMatrix(lookAtMatrix);
 
-        parentRotation.slerp(targetRotation, str);
+      var str = Math.min(3 * Globals.instance.dt, 5);
 
-        tick.target.drawable.mesh.rotation.setFromQuaternion(parentRotation);
-        tick.target.drawable.mesh.__dirtyRotation = true;
+      parentRotation.slerp(targetRotation, str);
 
-        return b3.RUNNING;
-      };
+      tick.target.drawable.mesh.rotation.setFromQuaternion(parentRotation);
+      tick.target.drawable.mesh.__dirtyRotation = true;
 
-      var RandomChildNode = b3.Class(b3.Composite);
-      RandomChildNode.prototype.name = 'RandomChildNode';
+      return b3.RUNNING;
+    };
 
-      RandomChildNode.prototype.__Composite_initialize = RandomChildNode.prototype.initialize;
-      RandomChildNode.prototype.initialize = function(settings) {
-        settings = settings || {};
+    var RandomChildNode = b3.Class(b3.Composite);
+    RandomChildNode.prototype.name = 'RandomChildNode';
 
-        this.__Composite_initialize(settings);
+    RandomChildNode.prototype.__Composite_initialize = RandomChildNode.prototype.initialize;
+    RandomChildNode.prototype.initialize = function(settings) {
+      settings = settings || {};
 
-        this.chance = settings.chance;
-      };
+      this.__Composite_initialize(settings);
 
-      RandomChildNode.prototype.tick = function(tick) {
-        //var chance = 1 / this.children.length;
+      this.chance = settings.chance;
+    };
 
-        for (var i = 0; i < this.children.length; i++) {
-          if (Math.random() <= this.chance[i]) {
-            var status = this.children[i]._execute(tick);
+    RandomChildNode.prototype.tick = function(tick) {
+      //var chance = 1 / this.children.length;
 
-            if (status !== b3.SUCCESS) {
-              return status;
-            }
+      for (var i = 0; i < this.children.length; i++) {
+        if (Math.random() <= this.chance[i]) {
+          var status = this.children[i]._execute(tick);
+
+          if (status !== b3.SUCCESS) {
+            return status;
           }
         }
+      }
 
+      return b3.SUCCESS;
+    };
+
+    var FollowNode = b3.Class(b3.Action);
+    FollowNode.prototype.name = 'FollowNode';
+    FollowNode.prototype.parameters = {
+      'following': null
+    };
+
+    FollowNode.prototype.__Action_initialize = FollowNode.prototype.initialize;
+    FollowNode.prototype.initialize = function(settings) {
+      settings = settings || {};
+
+      this.__Action_initialize();
+
+      this.following = settings.following;
+    };
+
+    FollowNode.prototype.tick = function(tick) {
+      if (this.following._manager === null || this.following._manager === undefined) {
+        return b3.FAILURE;
+      }
+
+      var parentPos = tick.target.drawable.mesh.position.clone();
+      var followingPos = this.following.drawable.mesh.position.clone();
+
+      var distance = parentPos.distanceTo(followingPos);
+
+      if (distance < 50) {
         return b3.SUCCESS;
-      };
+      }
 
-      var FollowNode = b3.Class(b3.Action);
-      FollowNode.prototype.name = 'FollowNode';
-      FollowNode.prototype.parameters = {
-        'following': null
-      };
+      var difference = new THREE.Vector3();
+      difference.subVectors(followingPos, parentPos);
 
-      FollowNode.prototype.__Action_initialize = FollowNode.prototype.initialize;
-      FollowNode.prototype.initialize = function(settings) {
-        settings = settings || {};
+      var normal = difference.normalize();
+      var velocity = new THREE.Vector3(tick.target.velocity.x, tick.target.velocity.y, tick.target.velocity.z);
+      var dv = new THREE.Vector3(EntityFactory.MOVE_SPEED.enemy * normal.x, 0, EntityFactory.MOVE_SPEED.enemy * normal.z);
 
-        this.__Action_initialize();
+      velocity.add(dv);
 
-        this.following = settings.following;
-      };
+      tick.target.velocity.x = velocity.x;
+      tick.target.velocity.y = velocity.y;
+      tick.target.velocity.z = velocity.z;
 
-      FollowNode.prototype.tick = function(tick) {
-        if (this.following._manager === null || this.following._manager === undefined) {
-          return b3.FAILURE;
-        }
+      return b3.RUNNING;
+    };
 
-        var parentPos = tick.target.drawable.mesh.position.clone();
-        var followingPos = this.following.drawable.mesh.position.clone();
+    var ShootNode = b3.Class(b3.Action);
+    ShootNode.prototype.name = 'ShootNode';
+    ShootNode.prototype.parameters = {
+      'shootingAt': null
+    };
 
-        var distance = parentPos.distanceTo(followingPos);
+    ShootNode.prototype.__Action_initialize = ShootNode.prototype.initialize;
+    ShootNode.prototype.initialize = function(settings) {
+      settings = settings || {};
 
-        if (distance < 50) {
-          return b3.SUCCESS;
-        }
+      this.__Action_initialize();
 
-        var difference = new THREE.Vector3();
-        difference.subVectors(followingPos, parentPos);
+      this.shootingAt = settings.shootingAt;
+      this.bulletSpeed = settings.bulletSpeed;
+    };
 
-        var normal = difference.normalize();
-        var velocity = new THREE.Vector3(tick.target.velocity.x, tick.target.velocity.y, tick.target.velocity.z);
-        var dv = new THREE.Vector3(EntityFactory.MOVE_SPEED.enemy * normal.x, 0, EntityFactory.MOVE_SPEED.enemy * normal.z);
+    ShootNode.prototype.tick = function(tick) {
+      if (this.shootingAt._manager === null || this.shootingAt._manager === undefined) {
+        return b3.FAILURE;
+      }
+      else if (tick.target.shootDelay.canShoot === false) {
+        return b3.FAILURE;
+      }
 
-        velocity.add(dv);
+      var parentPos = tick.target.drawable.mesh.position.clone();
+      var followingPos = this.shootingAt.drawable.mesh.position.clone();
 
-        tick.target.velocity.x = velocity.x;
-        tick.target.velocity.y = velocity.y;
-        tick.target.velocity.z = velocity.z;
+      var spawnLocation = parentPos.clone();
+      var spawnOffset = new THREE.Vector3(0, 10, 20);
+      spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
+      spawnLocation.add(spawnOffset);
 
-        return b3.RUNNING;
-      };
+      // the number of frames to "look ahead"
+      // this is used to lead the shot, making it easier to hit a moving target (in this case, the player)
+      var futureFrames = (EntityFactory.MAX_BULLET_SPEED.enemy - this.bulletSpeed) / 2.5;
+      futureFrames = THREE.Math.clamp(futureFrames, 2, 15);
 
-      var ShootNode = b3.Class(b3.Action);
-      ShootNode.prototype.name = 'ShootNode';
-      ShootNode.prototype.parameters = {
-        'shootingAt': null
-      };
+      var followingVel = new THREE.Vector3(this.shootingAt.velocity.x, this.shootingAt.velocity.y, this.shootingAt.velocity.z);
+      followingVel.multiplyScalar(Globals.instance.dt * futureFrames);
+      var predictedPos = followingPos.clone();
+      predictedPos.add(followingVel);
 
-      ShootNode.prototype.__Action_initialize = ShootNode.prototype.initialize;
-      ShootNode.prototype.initialize = function(settings) {
-        settings = settings || {};
+      var posDif = spawnLocation.clone();
+      posDif.sub(predictedPos);
 
-        this.__Action_initialize();
+      var distance = posDif.length();
 
-        this.shootingAt = settings.shootingAt;
-        this.bulletSpeed = settings.bulletSpeed;
-      };
+      var lookAtMatrix = new THREE.Matrix4();
+      lookAtMatrix.lookAt(predictedPos, spawnLocation, new THREE.Vector3(0, 1, 0));
 
-      ShootNode.prototype.tick = function(tick) {
-        if (this.shootingAt._manager === null || this.shootingAt._manager === undefined) {
-          return b3.FAILURE;
-        }
-        else if (tick.target.shootDelay.canShoot === false) {
-          return b3.FAILURE;
-        }
+      var forward = new THREE.Vector3(0, 0, -1);
+      forward.applyMatrix4(lookAtMatrix);
 
-        var parentPos = tick.target.drawable.mesh.position.clone();
-        var followingPos = this.shootingAt.drawable.mesh.position.clone();
+      var velocity = -this.bulletSpeed;
 
-        var spawnLocation = parentPos.clone();
-        var spawnOffset = new THREE.Vector3(0, 10, 20);
-        spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
-        spawnLocation.add(spawnOffset);
+      // I have no clue why this works, but it seems to generate an arc fairly consistently
+      var velOffset = 1 - (velocity / 100);
+      forward.y -= distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
+      forward.normalize();
 
-        // the number of frames to "look ahead"
-        // this is used to lead the shot, making it easier to hit a moving target (in this case, the player)
-        var futureFrames = (EntityFactory.MAX_BULLET_SPEED.enemy - this.bulletSpeed) / 2.5;
-        futureFrames = THREE.Math.clamp(futureFrames, 2, 15);
-
-        var followingVel = new THREE.Vector3(this.shootingAt.velocity.x, this.shootingAt.velocity.y, this.shootingAt.velocity.z);
-        followingVel.multiplyScalar(Globals.instance.dt * futureFrames);
-        var predictedPos = followingPos.clone();
-        predictedPos.add(followingVel);
-
-        var posDif = spawnLocation.clone();
-        posDif.sub(predictedPos);
-
-        var distance = posDif.length();
-
-        var lookAtMatrix = new THREE.Matrix4();
-        lookAtMatrix.lookAt(predictedPos, spawnLocation, new THREE.Vector3(0, 1, 0));
-
-        var forward = new THREE.Vector3(0, 0, -1);
-        forward.applyMatrix4(lookAtMatrix);
-
-        var velocity = -this.bulletSpeed;
-
-        // I have no clue why this works, but it seems to generate an arc fairly consistently
-        var velOffset = 1 - (velocity / 100);
-        forward.y -= distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
-        forward.normalize();
-
-        EntityFactory.instance.makePotato({
-          scene: tick.target.drawable.scene,
-          position: spawnLocation,
-          rotation: tick.target.drawable.mesh.rotation.clone(),
-          direction: forward,
-          velocity: velocity,
-          owner: 'enemy'
-        });
-
-        tick.target.shootDelay.canShoot = false;
-
-        return b3.SUCCESS;
-      };
-
-      enemy.ai.tree = new b3.BehaviorTree();
-      enemy.ai.tree.root = new b3.Sequence({
-        children: [
-          new b3.Sequence({
-            children: [
-              new FaceNode({
-                facing: options.aiTarget
-              }),
-              new RandomChildNode({
-                children: [
-                  new FollowNode({
-                    following: options.aiTarget
-                  }),
-                  new ShootNode({
-                    shootingAt: options.aiTarget,
-                    bulletSpeed: options.bulletSpeed
-                  })
-                ],
-                chance: [
-                  0.9,
-                  0.1
-                ]
-              })
-            ]
-          })
-        ]
+      EntityFactory.instance.makePotato({
+        scene: tick.target.drawable.scene,
+        position: spawnLocation,
+        rotation: tick.target.drawable.mesh.rotation.clone(),
+        direction: forward,
+        velocity: velocity,
+        owner: 'enemy'
       });
 
-      enemy.ai.target = enemy;
-      enemy.ai.blackboard = new b3.Blackboard();
-    }.bind(this));
+      tick.target.shootDelay.canShoot = false;
+
+      return b3.SUCCESS;
+    };
+
+    enemy.ai.tree = new b3.BehaviorTree();
+    enemy.ai.tree.root = new b3.Sequence({
+      children: [
+        new b3.Sequence({
+          children: [
+            new FaceNode({
+              facing: options.aiTarget
+            }),
+            new RandomChildNode({
+              children: [
+                new FollowNode({
+                  following: options.aiTarget
+                }),
+                new ShootNode({
+                  shootingAt: options.aiTarget,
+                  bulletSpeed: options.bulletSpeed
+                })
+              ],
+              chance: [
+                0.9,
+                0.1
+              ]
+            })
+          ]
+        })
+      ]
+    });
+
+    enemy.ai.target = enemy;
+    enemy.ai.blackboard = new b3.Blackboard();
+
+    return enemy;
   },
 
   makeGun: function(options) {
-    ResourceManager.instance.loadModel('models/potatoCannon.json', function(model) {
-      var gun = this.entities.createEntity();
+    var gun = this.entities.createEntity();
 
-      gun.addComponent(C.Position);
-      gun.addComponent(C.Drawable);
+    gun.addComponent(C.Position);
+    gun.addComponent(C.Drawable);
 
-      gun.drawable.scene = options.parent;
-      gun.drawable.mesh = new THREE.Mesh(
-        model.geometry,
-        model.material.clone());
+    var model = ResourceManager.instance.getModel('models/potatoCannon.json').clone();
 
-      gun.drawable.mesh.position.copy(options.offset);
+    gun.drawable.scene = options.parent;
+    gun.drawable.mesh = new THREE.Mesh(
+      model.geometry,
+      model.material);
 
-      gun.drawable.scene.add(gun.drawable.mesh);
+    gun.drawable.mesh.position.copy(options.offset);
 
-      if (options.cameraControls) {
-        gun.addComponent(C.CameraPitch);
+    gun.drawable.scene.add(gun.drawable.mesh);
 
-        gun.cameraPitch.controls = options.cameraControls;
-      }
+    if (options.cameraControls) {
+      gun.addComponent(C.CameraPitch);
 
-      if (options.callback) {
-        options.callback(gun);
-      }
-    }.bind(this));
+      gun.cameraPitch.controls = options.cameraControls;
+    }
+
+    return gun;
   },
 
   makePotato: function(options) {
-    ResourceManager.instance.loadModel('models/potato.json', function(model) {
-      var potato = this.entities.createEntity();
+    var potato = this.entities.createEntity();
 
-      potato.addTag("bullet");
-      potato.addTag("potato");
+    potato.addTag("bullet");
+    potato.addTag("potato");
 
-      potato.addComponent(C.Identifier);
-      potato.addComponent(C.Position);
-      potato.addComponent(C.Velocity);
-      potato.addComponent(C.Drawable);
-      potato.addComponent(C.Bullet);
-      potato.addComponent(C.Expirable);
-      potato.addComponent(C.OneTimeHit);
-      potato.addComponent(C.Steaming);
+    potato.addComponent(C.Identifier);
+    potato.addComponent(C.Position);
+    potato.addComponent(C.Velocity);
+    potato.addComponent(C.Drawable);
+    potato.addComponent(C.Bullet);
+    potato.addComponent(C.Expirable);
+    potato.addComponent(C.OneTimeHit);
+    potato.addComponent(C.Steaming);
 
-      potato.identifier.type = Globals.ENTITY_TYPES.bullet;
-      potato.bullet.owner = options.owner;
+    potato.identifier.type = Globals.ENTITY_TYPES.bullet;
+    potato.bullet.owner = options.owner;
 
-      potato.velocity.doMove = false;
+    potato.velocity.doMove = false;
 
-      potato.drawable.scene = options.scene;
+    var model = ResourceManager.instance.getModel('models/potato.json').clone();
 
-      potato.drawable.mesh = new Physijs.CapsuleMesh(
-        model.geometry,
-        Physijs.createMaterial(model.material.clone(), 0.7, 0.01),
-        0.3);
-      potato.drawable.mesh.entity = potato;
+    potato.drawable.scene = options.scene;
 
-      // potatos are "hot" when created, so tint them red
+    potato.drawable.mesh = new Physijs.CapsuleMesh(
+      model.geometry,
+      Physijs.createMaterial(model.material, 0.7, 0.01),
+      0.3);
+    potato.drawable.mesh.entity = potato;
+
+    // potatos are "hot" when created, so tint them red
+    potato.drawable.mesh.material.materials.forEach(function(mat) {
+      mat.color.setHex(0xE34D4D);
+    });
+
+    if (options.owner === 'player') {
+      potato.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
+    }
+    else {
+      potato.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
+    }
+
+    potato.drawable.mesh._physijs.collision_masks = (
+      EntityFactory.COLLISION_TYPES.obstacle |
+      EntityFactory.COLLISION_TYPES.enemy |
+      EntityFactory.COLLISION_TYPES.player |
+      EntityFactory.COLLISION_TYPES.playerBullet |
+      EntityFactory.COLLISION_TYPES.enemyBullet);
+
+    potato.drawable.mesh.position.copy(options.position);
+    potato.drawable.mesh.rotation.copy(options.rotation);
+    if (options.scale) {
+      potato.drawable.mesh.scale.copy(options.scale);
+    }
+
+    potato.drawable.scene.add(potato.drawable.mesh);
+
+    potato.drawable.mesh.setDamping(0.1, 0);
+
+    potato.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+      if (potato.bullet.isHot === false) {
+        return;
+      }
+
+      var hitPlayer = potato.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
+      var hitEnemy = potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
+
+      if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        other_object.entity.addComponent(C.Hurt);
+        other_object.entity.hurt.originalColor = other_object.material.color.clone();
+
+        other_object.entity.health.hp -= 5;
+        other_object.entity.health.changed = true;
+
+        potato.oneTimeHit.alreadyHit.push(other_object.uuid);
+      }
+      else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
+        potato.bullet.touchedGround = true;
+      }
+      else if (potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        Globals.instance.score += 5;
+
+        Globals.instance.scoreElement.innerHTML = Globals.instance.score;
+
+        potato.oneTimeHit.alreadyHit.push(other_object.uuid);
+      }
+
+      var soundPos = new THREE.Vector3().setFromMatrixPosition(potato.drawable.mesh.matrixWorld);
+      var soundVel = new THREE.Vector3(potato.velocity.x * Globals.instance.dt, potato.velocity.y * Globals.instance.dt, potato.velocity.z * Globals.instance.dt);
+      var soundForward = new THREE.Vector3(0, 0, 1);
+      soundForward.applyProjection(potato.drawable.mesh.matrixWorld);
+      soundForward.normalize();
+
+      var sound = Globals.instance.sound.getSound('sfx/hitSplat.wav');
+      sound.setPosition(soundPos);
+      sound.setVelocity(vel);
+      sound.setOrientation(soundForward);
+      sound.play();
+
+      potato.bullet.isHot = false;
+
+      // the potato is now "cold," so tint it blue
       potato.drawable.mesh.material.materials.forEach(function(mat) {
-        mat.color.setHex(0xE34D4D);
+        mat.color.setHex(0x45B7DE);
       });
-
-      if (options.owner === 'player') {
-        potato.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
-      }
-      else {
-        potato.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
-      }
-
-      potato.drawable.mesh._physijs.collision_masks = (
-        EntityFactory.COLLISION_TYPES.obstacle |
-        EntityFactory.COLLISION_TYPES.enemy |
-        EntityFactory.COLLISION_TYPES.player |
-        EntityFactory.COLLISION_TYPES.playerBullet |
-        EntityFactory.COLLISION_TYPES.enemyBullet);
-
-      potato.drawable.mesh.position.copy(options.position);
-      potato.drawable.mesh.rotation.copy(options.rotation);
-      if (options.scale) {
-        potato.drawable.mesh.scale.copy(options.scale);
-      }
-
-      potato.drawable.scene.add(potato.drawable.mesh);
-
-      potato.drawable.mesh.setDamping(0.1, 0);
-
-      potato.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-        if (potato.bullet.isHot === false) {
-          return;
-        }
-
-        var hitPlayer = potato.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
-        var hitEnemy = potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
-
-        if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
-          other_object.entity.addComponent(C.Hurt);
-          other_object.entity.hurt.originalColor = other_object.material.color.clone();
-
-          other_object.entity.health.hp -= 5;
-          other_object.entity.health.changed = true;
-
-          potato.oneTimeHit.alreadyHit.push(other_object.uuid);
-        }
-        else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
-          potato.bullet.touchedGround = true;
-        }
-        else if (potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
-          Globals.instance.score += 5;
-
-          Globals.instance.scoreElement.innerHTML = Globals.instance.score;
-
-          potato.oneTimeHit.alreadyHit.push(other_object.uuid);
-        }
-
-        var soundPos = new THREE.Vector3().setFromMatrixPosition(potato.drawable.mesh.matrixWorld);
-        var soundVel = new THREE.Vector3(potato.velocity.x * Globals.instance.dt, potato.velocity.y * Globals.instance.dt, potato.velocity.z * Globals.instance.dt);
-        var soundForward = new THREE.Vector3(0, 0, 1);
-        soundForward.applyProjection(potato.drawable.mesh.matrixWorld);
-        soundForward.normalize();
-
-        var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/hitSplat.wav');
-        sound.setPosition(soundPos);
-        sound.setVelocity(vel);
-        sound.setOrientation(soundForward);
-        sound.play();
-
-        potato.bullet.isHot = false;
-
-        // the potato is now "cold," so tint it blue
-        potato.drawable.mesh.material.materials.forEach(function(mat) {
-          mat.color.setHex(0x45B7DE);
-        });
-      }.bind(this));
-
-      potato.position.x = options.position.x;
-      potato.position.y = options.position.y;
-      potato.position.z = options.position.z;
-
-      var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
-      vel.multiply(options.direction);
-      potato.drawable.mesh.applyCentralImpulse(vel);
-
-      potato.expirable.maxAge = 6;
-
-      potato.steaming.parent = potato.drawable.mesh;
-      potato.steaming.particles = new THREE.Geometry();
-      for (var i = 0; i < 25; i++) {
-        var particle = new THREE.Vector3(
-          Math.random() * Utils.randomRange(-2, 2),
-          Math.random() * 20,
-          Math.random() * Utils.randomRange(-2, 2));
-        potato.steaming.particles.vertices.push(particle);
-      }
-
-      var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/smoketex.jpg');
-      var smokeMaterial = new THREE.PointCloudMaterial({
-        map: smokeTexture,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        size: 2,
-        color: 0x111111
-      });
-
-      potato.steaming.system = new THREE.PointCloud(potato.steaming.particles, smokeMaterial);
-      potato.steaming.system.sortParticles = true;
-
-      potato.steaming.container = new THREE.Gyroscope();
-      potato.steaming.container.add(potato.steaming.system);
-      potato.drawable.mesh.add(potato.steaming.container);
-
-      if (options.callback) {
-        options.callback(potato);
-      }
     }.bind(this));
+
+    potato.position.x = options.position.x;
+    potato.position.y = options.position.y;
+    potato.position.z = options.position.z;
+
+    var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
+    vel.multiply(options.direction);
+    potato.drawable.mesh.applyCentralImpulse(vel);
+
+    potato.expirable.maxAge = 6;
+
+    potato.steaming.parent = potato.drawable.mesh;
+    potato.steaming.particles = new THREE.Geometry();
+    for (var i = 0; i < 25; i++) {
+      var particle = new THREE.Vector3(
+        Math.random() * Utils.randomRange(-2, 2),
+        Math.random() * 20,
+        Math.random() * Utils.randomRange(-2, 2));
+      potato.steaming.particles.vertices.push(particle);
+    }
+
+    var smokeTexture = ResourceManager.instance.getTexture('gfx/smoketex.jpg');
+    var smokeMaterial = new THREE.PointCloudMaterial({
+      map: smokeTexture,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      size: 2,
+      color: 0x111111
+    });
+
+    potato.steaming.system = new THREE.PointCloud(potato.steaming.particles, smokeMaterial);
+    potato.steaming.system.sortParticles = true;
+
+    potato.steaming.container = new THREE.Gyroscope();
+    potato.steaming.container.add(potato.steaming.system);
+    potato.drawable.mesh.add(potato.steaming.container);
+
+    return potato;
   },
 
   makeFry: function(options) {
-    ResourceManager.instance.loadModel('models/fry.json', function(model) {
-      var fry = this.entities.createEntity();
+    var fry = this.entities.createEntity();
 
-      fry.addTag("bullet");
-      fry.addTag("fry");
+    fry.addTag("bullet");
+    fry.addTag("fry");
 
-      fry.addComponent(C.Identifier);
-      fry.addComponent(C.Position);
-      fry.addComponent(C.Drawable);
-      fry.addComponent(C.Bullet);
-      fry.addComponent(C.Expirable);
-      fry.addComponent(C.OneTimeHit);
-      fry.addComponent(C.Steaming);
+    fry.addComponent(C.Identifier);
+    fry.addComponent(C.Position);
+    fry.addComponent(C.Drawable);
+    fry.addComponent(C.Bullet);
+    fry.addComponent(C.Expirable);
+    fry.addComponent(C.OneTimeHit);
+    fry.addComponent(C.Steaming);
 
-      fry.identifier.type = Globals.ENTITY_TYPES.bullet;
-      fry.bullet.owner = options.owner;
+    fry.identifier.type = Globals.ENTITY_TYPES.bullet;
+    fry.bullet.owner = options.owner;
 
-      fry.drawable.scene = options.scene;
+    var model = ResourceManager.instance.getModel('models/fry.json').clone();
 
-      fry.drawable.mesh = new Physijs.BoxMesh(
-        model.geometry,
-        Physijs.createMaterial(model.material.clone(), 0.7, 0.01),
-        0.002);
-      fry.drawable.mesh.entity = fry;
+    fry.drawable.scene = options.scene;
 
-      // fries are "hot" when created, so tint them red
-      fry.drawable.mesh.material.materials.forEach(function(mat) {
-        mat.color.setHex(0xE34D4D);
-      });
+    fry.drawable.mesh = new Physijs.BoxMesh(
+      model.geometry,
+      Physijs.createMaterial(model.material, 0.7, 0.01),
+      0.002);
+    fry.drawable.mesh.entity = fry;
 
-      if (options.owner === 'player') {
-        fry.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
-      }
-      else {
-        fry.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
-      }
+    // fries are "hot" when created, so tint them red
+    fry.drawable.mesh.material.materials.forEach(function(mat) {
+      mat.color.setHex(0xE34D4D);
+    });
 
-      fry.drawable.mesh._physijs.collision_masks = (
-        EntityFactory.COLLISION_TYPES.obstacle |
-        EntityFactory.COLLISION_TYPES.enemy |
-        EntityFactory.COLLISION_TYPES.player |
-        EntityFactory.COLLISION_TYPES.playerBullet |
-        EntityFactory.COLLISION_TYPES.enemyBullet);
+    if (options.owner === 'player') {
+      fry.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.playerBullet;
+    }
+    else {
+      fry.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.enemyBullet;
+    }
 
-      fry.drawable.mesh.position.copy(options.position);
-      fry.drawable.mesh.rotation.copy(options.rotation);
-      if (options.scale) {
-        fry.drawable.mesh.scale.copy(options.scale);
-      }
+    fry.drawable.mesh._physijs.collision_masks = (
+      EntityFactory.COLLISION_TYPES.obstacle |
+      EntityFactory.COLLISION_TYPES.enemy |
+      EntityFactory.COLLISION_TYPES.player |
+      EntityFactory.COLLISION_TYPES.playerBullet |
+      EntityFactory.COLLISION_TYPES.enemyBullet);
 
-      fry.drawable.scene.add(fry.drawable.mesh);
+    fry.drawable.mesh.position.copy(options.position);
+    fry.drawable.mesh.rotation.copy(options.rotation);
+    if (options.scale) {
+      fry.drawable.mesh.scale.copy(options.scale);
+    }
 
-      fry.drawable.mesh.setDamping(0.1, 0);
+    fry.drawable.scene.add(fry.drawable.mesh);
 
-      fry.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
-        if (fry.bullet.isHot === false) {
-          return;
-        }
+    fry.drawable.mesh.setDamping(0.1, 0);
 
-        var hitPlayer = fry.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
-        var hitEnemy = fry.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
-
-        if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
-          other_object.entity.addComponent(C.Hurt);
-          other_object.entity.hurt.originalColor = other_object.material.color.clone();
-
-          other_object.entity.health.hp -= 1;
-          other_object.entity.health.changed = true;
-
-          fry.oneTimeHit.alreadyHit.push(other_object.uuid);
-        }
-        else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
-          fry.bullet.touchedGround = true;
-        }
-        else if (fry.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
-          Globals.instance.score += 5;
-
-          Globals.instance.scoreElement.innerHTML = Globals.instance.score;
-
-          fry.oneTimeHit.alreadyHit.push(other_object.uuid);
-        }
-
-        fry.bullet.isHot = other_object.entity.hasTag("fry");
-
-        if (fry.bullet.isHot === false) {
-          // the fry is now "cold," so tint it blue
-          fry.drawable.mesh.material.materials.forEach(function(mat) {
-            mat.color.setHex(0x45B7DE);
-          });
-        }
-      }.bind(this));
-
-      fry.position.x = options.position.x;
-      fry.position.y = options.position.y;
-      fry.position.z = options.position.z;
-
-      var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
-      vel.multiply(options.direction);
-      fry.drawable.mesh.applyCentralImpulse(vel);
-
-      fry.expirable.maxAge = 6;
-
-      fry.steaming.parent = fry.drawable.mesh;
-      fry.steaming.particles = new THREE.Geometry();
-      for (var i = 0; i < 25; i++) {
-        var particle = new THREE.Vector3(
-          Math.random() * Utils.randomRange(-2, 2),
-          Math.random() * 20,
-          Math.random() * Utils.randomRange(-2, 2));
-        fry.steaming.particles.vertices.push(particle);
+    fry.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+      if (fry.bullet.isHot === false) {
+        return;
       }
 
-      var smokeTexture = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/smoketex.jpg');
-      var smokeMaterial = new THREE.PointCloudMaterial({
-        map: smokeTexture,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        size: 2,
-        color: 0x111111
-      });
+      var hitPlayer = fry.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
+      var hitEnemy = fry.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
-      fry.steaming.system = new THREE.PointCloud(fry.steaming.particles, smokeMaterial);
-      fry.steaming.system.sortParticles = true;
+      if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        other_object.entity.addComponent(C.Hurt);
+        other_object.entity.hurt.originalColor = other_object.material.color.clone();
 
-      fry.steaming.container = new THREE.Gyroscope();
-      fry.steaming.container.add(fry.steaming.system);
-      fry.drawable.mesh.add(fry.steaming.container);
+        other_object.entity.health.hp -= 2;
+        other_object.entity.health.changed = true;
 
-      if (options.callback) {
-        options.callback(fry);
+        fry.oneTimeHit.alreadyHit.push(other_object.uuid);
+      }
+      else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
+        fry.bullet.touchedGround = true;
+      }
+      else if (fry.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+        Globals.instance.score += 5;
+
+        Globals.instance.scoreElement.innerHTML = Globals.instance.score;
+
+        fry.oneTimeHit.alreadyHit.push(other_object.uuid);
+      }
+
+      fry.bullet.isHot = other_object.entity.hasTag("fry");
+
+      if (fry.bullet.isHot === false) {
+        // the fry is now "cold," so tint it blue
+        fry.drawable.mesh.material.materials.forEach(function(mat) {
+          mat.color.setHex(0x45B7DE);
+        });
       }
     }.bind(this));
+
+    fry.position.x = options.position.x;
+    fry.position.y = options.position.y;
+    fry.position.z = options.position.z;
+
+    var vel = new THREE.Vector3(options.velocity, options.velocity, options.velocity);
+    vel.multiply(options.direction);
+    fry.drawable.mesh.applyCentralImpulse(vel);
+
+    fry.expirable.maxAge = 6;
+
+    fry.steaming.parent = fry.drawable.mesh;
+    fry.steaming.particles = new THREE.Geometry();
+    for (var i = 0; i < 25; i++) {
+      var particle = new THREE.Vector3(
+        Math.random() * Utils.randomRange(-2, 2),
+        Math.random() * 20,
+        Math.random() * Utils.randomRange(-2, 2));
+      fry.steaming.particles.vertices.push(particle);
+    }
+
+    var smokeTexture = ResourceManager.instance.getTexture('gfx/smoketex.jpg');
+    var smokeMaterial = new THREE.PointCloudMaterial({
+      map: smokeTexture,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      size: 2,
+      color: 0x111111
+    });
+
+    fry.steaming.system = new THREE.PointCloud(fry.steaming.particles, smokeMaterial);
+    fry.steaming.system.sortParticles = true;
+
+    fry.steaming.container = new THREE.Gyroscope();
+    fry.steaming.container.add(fry.steaming.system);
+    fry.drawable.mesh.add(fry.steaming.container);
+
+    return fry;
   },
 
   makeGround: function(options) {
@@ -765,11 +760,11 @@ EntityFactory = Class({
 
     ground.drawable.scene = options.scene;
 
-    var mainTex = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/brick-floor-tileable_COLOR.jpg');
+    var mainTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_COLOR.jpg');
     mainTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
-    var diffuseTex = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/brick-floor-tileable_DISP.jpg');
+    var diffuseTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_DISP.jpg');
     diffuseTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
-    var specularTex = ResourceManager.instance.getTexture(Globals.DIR + 'gfx/brick-floor-tileable_SPEC.jpg');
+    var specularTex = ResourceManager.instance.getTexture('gfx/brick-floor-tileable_SPEC.jpg');
     specularTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
 
     ground.drawable.mesh = new Physijs.BoxMesh(

@@ -1,3 +1,7 @@
+var Stats = require('stats.js');
+var THREEx = require('./threex.rendererstats.js');
+var Utils = require('./Utils.js');
+
 Game = Class({
   constructor: function(options) {
     this.container = options.container;
@@ -53,12 +57,21 @@ Game = Class({
     this.renderer.setClearColor(0xbc00bc, 1);
     this.container.appendChild(this.renderer.domElement);
 
+    /* THREEx.RendererStats Setup */
+
+    this.rendererStats = new THREEx.RendererStats();
+    this.rendererStats.domElement.style.position = 'absolute';
+    this.rendererStats.domElement.style.left = '10px';
+    this.rendererStats.domElement.style.bottom = '10px';
+
+    document.body.appendChild(this.rendererStats.domElement);
+
     /* Stats.js Setup */
     this.stats = new Stats();
     this.stats.setMode(0);
 
     this.stats.domElement.style.position = 'absolute';
-    this.stats.domElement.style.left = '10px';
+    this.stats.domElement.style.left = '90px';
     this.stats.domElement.style.bottom = '10px';
 
     document.body.appendChild(this.stats.domElement);
@@ -114,7 +127,9 @@ Game = Class({
 
   loadSounds: function() {
     this.soundsToPreload.forEach(function(path) {
-      Globals.instance.sound.loadSound(Globals.DIR + path, this.soundLoaded.bind(this));
+      Globals.instance.sound.loadSound(path, {
+        callback: this.soundLoaded.bind(this)
+      });
     }.bind(this));
   },
 
@@ -129,7 +144,9 @@ Game = Class({
 
   loadModels: function() {
     this.modelsToPreload.forEach(function(path) {
-      ResourceManager.instance.loadModel(Globals.DIR + path, this.modelLoaded.bind(this));
+      ResourceManager.instance.loadModel(path, {
+        callback: this.modelLoaded.bind(this)
+      });
     }.bind(this));
   },
 
@@ -144,7 +161,9 @@ Game = Class({
 
   loadTextures: function() {
     this.texturesToPreload.forEach(function(path) {
-      ResourceManager.instance.loadTexture(Globals.DIR + path, this.textureLoaded.bind(this));
+      ResourceManager.instance.loadTexture(path, {
+        callback: this.textureLoaded.bind(this)
+      });
     }.bind(this));
   },
 
@@ -268,15 +287,34 @@ Game = Class({
         system.update(dt);
       });
 
+      this.waveCheck();
+
       Globals.instance.sound.update(dt);
 
       MouseController.instance.update(dt);
     }
 
     this.renderer.render(this.scene, this.camera);
+
+    this.rendererStats.update(this.renderer);
     this.stats.update();
 
     this.prevTime = time;
+  },
+
+  waveCheck: function() {
+    var enemies = EntityFactory.instance.entities.queryTag('enemy');
+
+    if (enemies.length === 0) {
+      Globals.instance.currentWave++;
+
+      if (Globals.instance.currentWave > Game.TOTAL_WAVES) {
+        Globals.instance.waveElement.innerHTML = 'Victory!';
+      }
+      else {
+        Globals.instance.waveElement.innerHTML = Globals.instance.currentWave + ' / ' + Game.TOTAL_WAVES;
+      }
+    }
   },
 
   onResize: function(e) {
@@ -476,7 +514,9 @@ Game = Class({
     },
 
     BASE_GUN_TYPE: 1,
-    TOTAL_GUN_TYPES: 2
+    TOTAL_GUN_TYPES: 2,
+
+    TOTAL_WAVES: 5
   }
 });
 

@@ -85,7 +85,14 @@ SoundController = Class({
     this.setListenerOrientation(orientation, up);
   },
 
-  loadSound: function(path, callback) {
+  loadSound: function(path, options) {
+    options = options || {};
+    var crossOrigin = options.crossOrigin || false;
+
+    if (crossOrigin === false) {
+      path = Globals.DIR + path;
+    }
+
     if (path in this.sounds) {
       throw new Error("The sound located at " + path + " is already loaded");
     }
@@ -94,11 +101,18 @@ SoundController = Class({
       context: this.context,
       mainVolume: this.mainVolume,
       path: path,
-      callback: callback
+      callback: options.callback
     });
   },
 
-  getSound: function(path) {
+  getSound: function(path, options) {
+    options = options || {};
+    var crossOrigin = options.crossOrigin || false;
+
+    if (crossOrigin === false) {
+      path = Globals.DIR + path;
+    }
+
     if (path in this.sounds) {
       return this.sounds[path];
     }

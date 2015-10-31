@@ -19,9 +19,13 @@ Globals = Class({
     this.weaponNameElement = null;
     this.weaponIconElement = null;
 
+    this.waveElement = null;
+
     this.overlayElement = null;
 
     this.sound = null;
+
+    this.currentWave = 1;
   }
 }, {
   statics: {

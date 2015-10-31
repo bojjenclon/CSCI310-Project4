@@ -14,6 +14,7 @@ Node Requires:
 
 Other Requirements:
 * [THREEx.KeyboardState](https://github.com/jeromeetienne/threex.keyboardstate)
+* [THREEx.RendererStats](https://github.com/jeromeetienne/threex.rendererstats)
 * [libgif-js](https://github.com/buzzfeed/libgif-js)
 
 Physijs modified to accept collision filtering. Idea/code taken from:  

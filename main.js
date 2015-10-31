@@ -1,17 +1,14 @@
 global.Class = require('js-class');
 global.THREE = require('three');
-global.THREEx = require('./js/THREEx.KeyboardState.js');
 global.Physijs = require('physijs-browserify')(THREE);
-global.Stats = require('stats.js');
-global.Howler = require('howler');
 
 require('hamsterjs');
 
 require('./RequestAnimationFrame.js');
 require('./rubbable.js');
-global.SuperGif = require('./libgif.js');
+var SuperGif = require('./libgif.js');
 
-global.Utils = require('./js/Utils.js');
+var Utils = require('./js/Utils.js');
 
 require('./js/Game.js');
 require('./js/Globals.js');
@@ -55,6 +52,8 @@ function init() {
   Globals.instance.weaponSelectorElement = document.getElementById("weaponSelector");
   Globals.instance.weaponNameElement = document.getElementById("weaponName");
   Globals.instance.weaponIconElement = document.getElementById("weaponIcon");
+
+  Globals.instance.waveElement = document.getElementById("wave");
 
   Globals.instance.overlayElement = document.getElementById("overlay");
 

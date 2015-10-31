@@ -22,35 +22,48 @@ ResourceManager = Class({
     this.models = {};
   },
 
-  loadTexture: function(path, callback) {
+  loadTexture: function(path, options) {
+    options = options || {};
+    var crossOrigin = options.crossOrigin || false;
+
+    if (crossOrigin === false) {
+      path = Globals.DIR + path;
+    }
+
     if (path in this.textures) {
       throw new Error("The texture located at " + path + " is already loaded");
     }
 
-    this.textures[path] = THREE.ImageUtils.loadTexture(path, undefined, callback, function(e) {
+    this.textures[path] = THREE.ImageUtils.loadTexture(path, undefined, options.callback, function(e) {
       console.log(e);
     });
   },
 
-  getTexture: function(path) {
-    if (path === null || path === undefined) {
-      return null;
+  getTexture: function(path, options) {
+    options = options || {};
+    var crossOrigin = options.crossOrigin || false;
+
+    if (crossOrigin === false) {
+      path = Globals.DIR + path;
     }
-    else if (path in this.textures) {
+
+    if (path in this.textures) {
       return this.textures[path];
     }
 
     throw new Error("The texture located at " + path + " is not loaded");
   },
 
-  loadModel: function(path, callback) {
-    if (path === null || path === undefined) {
-      return;
-    }
-    else if (path in this.models) {
-      callback(this.models[path]);
+  loadModel: function(path, options) {
+    options = options || {};
+    var crossOrigin = options.crossOrigin || false;
 
-      return;
+    if (crossOrigin === false) {
+      path = Globals.DIR + path;
+    }
+
+    if (path in this.models) {
+      throw new Error("The model located at " + path + " is already loaded");
     }
 
     this.jsonLoader.load(path, function(geometry, materials) {
@@ -62,8 +75,25 @@ ResourceManager = Class({
       });
       this.models[path] = model;
 
-      callback(model);
+      if (options.callback) {
+        options.callback(model);
+      }
     }.bind(this));
+  },
+
+  getModel: function(path, options) {
+    options = options || {};
+    var crossOrigin = options.crossOrigin || false;
+
+    if (crossOrigin === false) {
+      path = Globals.DIR + path;
+    }
+
+    if (path in this.models) {
+      return this.models[path];
+    }
+
+    throw new Error("The model located at " + path + " is not loaded");
   }
 }, {
   statics: {

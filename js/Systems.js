@@ -1,4 +1,6 @@
+var THREEx = require('./THREEx.KeyboardState.js');
 var C = require('./Components.js');
+var Utils = require('./Utils.js');
 
 PlayerInputSystem = Class({
   constructor: function(entities) {
@@ -81,7 +83,7 @@ PlayerInputSystem = Class({
             entity.ammo.currentAmmo[entity.gun.type] -= 1;
             Globals.instance.ammoElement.innerHTML = (entity.ammo.currentAmmo[entity.gun.type] + ' / ' + entity.ammo.maxAmmo[entity.gun.type]);
 
-            var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
+            var sound = Globals.instance.sound.getSound('sfx/arrowlessBow.mp3');
             sound.setPosition(gunPos);
             sound.setVelocity(velocity);
             sound.setOrientation(direction);
@@ -117,9 +119,9 @@ PlayerInputSystem = Class({
               bulletRot.z += Utils.randomRange(-piOver2, piOver2);
 
               var bulletDirection = baseDirection.clone();
-              bulletDirection.x += Utils.randomRange(-0.2, 0.2);
+              bulletDirection.x += Utils.randomRange(-0.1, 0.1);
               bulletDirection.y += Utils.randomRange(-0.1, 0.2);
-              bulletDirection.z += Utils.randomRange(-0.2, 0.2);
+              bulletDirection.z += Utils.randomRange(-0.1, 0.1);
 
               EntityFactory.instance.makeFry({
                 scene: entity.drawable.scene,
@@ -141,7 +143,7 @@ PlayerInputSystem = Class({
             entity.ammo.currentAmmo[entity.gun.type] -= numFries;
             Globals.instance.ammoElement.innerHTML = (entity.ammo.currentAmmo[entity.gun.type] + ' / ' + entity.ammo.maxAmmo[entity.gun.type]);
 
-            var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
+            var sound = Globals.instance.sound.getSound('sfx/arrowlessBow.mp3');
             sound.setPosition(basePos);
             sound.setVelocity(velocity);
             sound.setOrientation(baseDirection);
@@ -175,7 +177,6 @@ MovementSystem = Class({
 
       if (entity.hasComponent(C.Drawable)) {
         entity.drawable.mesh.applyCentralImpulse(velocity);
-        //entity.drawable.mesh.setLinearVelocity(entity.velocity);
       }
       else {
         entity.position.x += velocity.x * dt;
@@ -199,7 +200,22 @@ ExpirableSystem = Class({
 
       if (entity.expirable.age >= entity.expirable.maxAge) {
         if (entity.hasComponent(C.Drawable)) {
+          var geometry = entity.drawable.mesh.geometry;
+          var material = entity.drawable.mesh.material;
+
           entity.drawable.scene.remove(entity.drawable.mesh);
+
+          geometry.dispose();
+
+          if (material.materials) {
+            material.materials.forEach(function(mat) {
+              mat.dispose();
+            });
+          }
+
+          if (material.dispose) {
+            material.dispose();
+          }
         }
 
         entity.remove();
@@ -361,13 +377,49 @@ DeathSystem = Class({
     mortals.forEach(function(entity) {
       if (entity.health.hp <= 0) {
         if (entity.hasComponent(C.Drawable)) {
+          var geometry, material;
+
           if (entity.drawable.mesh._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy) {
             Globals.instance.score += 10;
 
             Globals.instance.scoreElement.innerHTML = Globals.instance.score;
           }
 
+          if (entity.health.healthBar) {
+            geometry = entity.health.healthBar.geometry;
+            material = entity.health.healthBar.material;
+
+            entity.drawable.mesh.remove(entity.health.healthBar);
+
+            geometry.dispose();
+
+            if (material.materials) {
+              material.materials.forEach(function(mat) {
+                mat.dispose();
+              });
+            }
+
+            if (material.dispose) {
+              material.dispose();
+            }
+          }
+
+          geometry = entity.drawable.mesh.geometry;
+          material = entity.drawable.mesh.material;
+
           entity.drawable.scene.remove(entity.drawable.mesh);
+
+          geometry.dispose();
+
+          if (material.materials) {
+            material.materials.forEach(function(mat) {
+              mat.dispose();
+            });
+          }
+
+          if (material.dispose) {
+            material.dispose();
+          }
         }
 
         entity.remove();
@@ -432,7 +484,22 @@ SteamRemovalSystem = Class({
 
     steaming.forEach(function(entity) {
       if (entity.bullet.isHot === false) {
+        var geometry = entity.steaming.particles;
+        var material = entity.steaming.system.material;
+
         entity.drawable.mesh.remove(entity.steaming.container);
+
+        geometry.dispose();
+
+        if (material.materials) {
+          material.materials.forEach(function(mat) {
+            mat.dispose();
+          });
+        }
+
+        if (material.dispose) {
+          material.dispose();
+        }
       }
     });
   }
