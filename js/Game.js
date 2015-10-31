@@ -12,6 +12,7 @@ Game = Class({
     this.renderer = null;
     this.scene = null;
     this.camera = null;
+    this.player = null;
 
     this.paused = true;
 
@@ -42,6 +43,7 @@ Game = Class({
     window.onkeydown = this.onKeyDown.bind(this); // prevent spacebar from scrolling the page
     window.addEventListener('mousedown', this.onMouseDown.bind(this));
     window.addEventListener('mouseup', this.onMouseUp.bind(this));
+    Hamster(window).wheel(this.onMouseWheel.bind(this));
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: true
@@ -230,6 +232,7 @@ Game = Class({
     this.instructions.style.visibility = "visible";
     Globals.instance.hudLeftElement.style.display = 'block';
     Globals.instance.hudRightElement.style.display = 'block';
+    Globals.instance.weaponSelectorElement.style.display = 'block';
 
     // ensure the user is at the top of the page
     document.body.scrollTop = document.documentElement.scrollTop = 0;
@@ -315,6 +318,34 @@ Game = Class({
       MouseController.instance.isDown.right = false;
       MouseController.instance.wasPressed.right = true;
     }
+  },
+
+  onMouseWheel: function(e, delta, deltaX, deltaY) {
+    if (MouseController.instance.canScrollWheel === false || this.paused === true || Globals.instance.playerAlive === false) {
+      return;
+    }
+
+    var scrolledUp = delta > 0;
+
+    if (scrolledUp) {
+      this.player.gun.type++;
+
+      if (this.player.gun.type > Game.TOTAL_GUN_TYPES) {
+        this.player.gun.type = Game.BASE_GUN_TYPE;
+      }
+    }
+    else {
+      this.player.gun.type--;
+
+      if (this.player.gun.type < Game.BASE_GUN_TYPE) {
+        this.player.gun.type = Game.TOTAL_GUN_TYPES;
+      }
+    }
+
+    Globals.instance.weaponNameElement.innerHTML = Game.GUN_NAMES[this.player.gun.type];
+    Globals.instance.weaponIconElement.src = Game.GUN_ICONS[this.player.gun.type];
+
+    MouseController.instance.canScrollWheel = false;
   },
 
   initPointerLock: function() {
@@ -423,7 +454,28 @@ Game = Class({
   statics: {
     KEY_CODES: {
       space: 32
-    }
+    },
+
+    GUN_TYPES: {
+      none: 0,
+      potatoCannon: 1,
+      scatterFries: 2
+    },
+
+    GUN_ICONS: {
+      0: '',
+      1: 'gfx/potatoIcon.png',
+      2: 'gfx/frenchFriesIcon.png'
+    },
+
+    GUN_NAMES: {
+      0: 'Fisticuffs',
+      1: 'Potato Cannon',
+      2: 'Scatter Fries'
+    },
+
+    BASE_GUN_TYPE: 1,
+    TOTAL_GUN_TYPES: 2
   }
 });
 

@@ -102,6 +102,7 @@ EntityFactory = Class({
         callback: function(gun) {
           player.gun.entity = gun;
           player.gun.mesh = gun.drawable.mesh;
+          player.gun.type = Game.GUN_TYPES.potatoCannon;
         }
       });
     }.bind(this));

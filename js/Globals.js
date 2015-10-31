@@ -1,6 +1,7 @@
 Globals = Class({
   constructor: function() {
     this.dt = 0;
+    this.playerAlive = true;
 
     this.hudElement = null;
 
@@ -13,6 +14,10 @@ Globals = Class({
 
     this.reloadingElement = null;
     this.reloadImg = null;
+
+    this.weaponSelectorElement = null;
+    this.weaponNameElement = null;
+    this.weaponIconElement = null;
 
     this.overlayElement = null;
 

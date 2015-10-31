@@ -5,6 +5,8 @@ global.Physijs = require('physijs-browserify')(THREE);
 global.Stats = require('stats.js');
 global.Howler = require('howler');
 
+require('hamsterjs');
+
 require('./RequestAnimationFrame.js');
 require('./rubbable.js');
 global.SuperGif = require('./libgif.js');
@@ -50,6 +52,10 @@ function init() {
   });
   Globals.instance.reloadImg.load();
 
+  Globals.instance.weaponSelectorElement = document.getElementById("weaponSelector");
+  Globals.instance.weaponNameElement = document.getElementById("weaponName");
+  Globals.instance.weaponIconElement = document.getElementById("weaponIcon");
+
   Globals.instance.overlayElement = document.getElementById("overlay");
 
   var gameOptions = {
@@ -74,7 +80,9 @@ function init() {
       'gfx/brick-floor-tileable_COLOR.jpg',
       'gfx/brick-floor-tileable_DISP.jpg',
       'gfx/brick-floor-tileable_SPEC.jpg',
-      'gfx/smoketex.jpg'
+      'gfx/smoketex.jpg',
+      'gfx/potatoIcon.png',
+      'gfx/frenchFriesIcon.png'
     ]
   };
   game = new Game(gameOptions);

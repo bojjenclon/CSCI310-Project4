@@ -44,105 +44,107 @@ PlayerInputSystem = Class({
 
       if (entity.shootDelay.canShoot) {
         if (MouseController.instance.wasPressed.left) {
-          var direction = new THREE.Vector3();
-          entity.cameraFollow.controls.getDirection(direction);
+          if (entity.gun.type === Game.GUN_TYPES.potatoCannon) {
+            var direction = new THREE.Vector3();
+            entity.cameraFollow.controls.getDirection(direction);
 
-          var gunPos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
-          var bulletPos = gunPos.clone();
-          var bulletOffset = new THREE.Vector3(0, 0.4, -25);
+            var gunPos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
+            var bulletPos = gunPos.clone();
+            var bulletOffset = new THREE.Vector3(0, 0.4, -25);
 
-          var rotationMatrix = entity.velocity.rotationMatrix.clone();
-          var yMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.controls.pitchObject.matrix);
-          rotationMatrix.multiply(yMatrix);
-
-          bulletOffset.applyMatrix4(rotationMatrix);
-          bulletPos.add(bulletOffset);
-
-          var bulletRot = entity.cameraFollow.object.rotation.clone();
-          bulletRot.y += 90 * Math.PI / 180;
-
-          EntityFactory.instance.makePotato({
-            scene: entity.drawable.scene,
-            position: bulletPos,
-            rotation: bulletRot,
-            direction: direction,
-            rotationMatrix: entity.velocity.rotationMatrix,
-            velocity: 35,
-            owner: 'player'
-          });
-
-          entity.shootDelay.canShoot = false;
-
-          Globals.instance.reloadImg.move_to(0);
-          Globals.instance.reloadImg.play();
-          Globals.instance.reloadingElement.style.visibility = "visible";
-
-          var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
-          sound.setPosition(gunPos);
-          sound.setVelocity(velocity);
-          sound.setOrientation(direction);
-          sound.play();
-        }
-        else if (MouseController.instance.wasPressed.right) {
-          var baseDirection = new THREE.Vector3();
-          entity.cameraFollow.controls.getDirection(baseDirection);
-
-          var basePos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
-
-          var rotationMatrix = entity.velocity.rotationMatrix.clone();
-          var yMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.controls.pitchObject.matrix);
-          rotationMatrix.multiply(yMatrix);
-
-          var bulletRot = entity.cameraFollow.object.rotation.clone();
-          bulletRot.y += 90 * Math.PI / 180;
-
-          for (var i = 0; i < Utils.randomRange(4, 9); i++) {
-            var bulletPos = basePos.clone();
-            var bulletOffset = new THREE.Vector3(Utils.randomRange(-1, 1), Utils.randomRange(-1, 1), -30);
+            var rotationMatrix = entity.velocity.rotationMatrix.clone();
+            var yMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.controls.pitchObject.matrix);
+            rotationMatrix.multiply(yMatrix);
 
             bulletOffset.applyMatrix4(rotationMatrix);
             bulletPos.add(bulletOffset);
 
-            var piOver2 = Math.PI / 2;
+            var bulletRot = entity.cameraFollow.object.rotation.clone();
+            bulletRot.y += 90 * Math.PI / 180;
 
-            bulletRot.x += Utils.randomRange(-piOver2, piOver2);
-            bulletRot.z += Utils.randomRange(-piOver2, piOver2);
-
-            var bulletDirection = baseDirection.clone();
-            bulletDirection.x += Utils.randomRange(-0.2, 0.2);
-            bulletDirection.y += Utils.randomRange(-0.1, 0.2);
-            bulletDirection.z += Utils.randomRange(-0.2, 0.2);
-
-            EntityFactory.instance.makeFry({
+            EntityFactory.instance.makePotato({
               scene: entity.drawable.scene,
               position: bulletPos,
               rotation: bulletRot,
-              direction: bulletDirection,
+              direction: direction,
               rotationMatrix: entity.velocity.rotationMatrix,
-              velocity: 0.5,
+              velocity: 35,
               owner: 'player'
             });
+
+            entity.shootDelay.canShoot = false;
+
+            Globals.instance.reloadImg.move_to(0);
+            Globals.instance.reloadImg.play();
+            Globals.instance.reloadingElement.style.visibility = "visible";
+
+            var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
+            sound.setPosition(gunPos);
+            sound.setVelocity(velocity);
+            sound.setOrientation(direction);
+            sound.play();
           }
+          else if (entity.gun.type === Game.GUN_TYPES.scatterFries) {
+            var baseDirection = new THREE.Vector3();
+            entity.cameraFollow.controls.getDirection(baseDirection);
 
-          entity.shootDelay.canShoot = false;
+            var basePos = new THREE.Vector3().setFromMatrixPosition(entity.gun.mesh.matrixWorld);
 
-          Globals.instance.reloadImg.move_to(0);
-          Globals.instance.reloadImg.play();
-          Globals.instance.reloadingElement.style.visibility = "visible";
+            var rotationMatrix = entity.velocity.rotationMatrix.clone();
+            var yMatrix = new THREE.Matrix4().extractRotation(entity.cameraFollow.controls.pitchObject.matrix);
+            rotationMatrix.multiply(yMatrix);
 
-          var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
-          sound.setPosition(basePos);
-          sound.setVelocity(velocity);
-          sound.setOrientation(baseDirection);
-          sound.play();
+            var bulletRot = entity.cameraFollow.object.rotation.clone();
+            bulletRot.y += 90 * Math.PI / 180;
+
+            for (var i = 0; i < Utils.randomRange(4, 9); i++) {
+              var bulletPos = basePos.clone();
+              var bulletOffset = new THREE.Vector3(Utils.randomRange(-1, 1), Utils.randomRange(-1, 1), -30);
+
+              bulletOffset.applyMatrix4(rotationMatrix);
+              bulletPos.add(bulletOffset);
+
+              var piOver2 = Math.PI / 2;
+
+              bulletRot.x += Utils.randomRange(-piOver2, piOver2);
+              bulletRot.z += Utils.randomRange(-piOver2, piOver2);
+
+              var bulletDirection = baseDirection.clone();
+              bulletDirection.x += Utils.randomRange(-0.2, 0.2);
+              bulletDirection.y += Utils.randomRange(-0.1, 0.2);
+              bulletDirection.z += Utils.randomRange(-0.2, 0.2);
+
+              EntityFactory.instance.makeFry({
+                scene: entity.drawable.scene,
+                position: bulletPos,
+                rotation: bulletRot,
+                direction: bulletDirection,
+                rotationMatrix: entity.velocity.rotationMatrix,
+                velocity: 0.5,
+                owner: 'player'
+              });
+            }
+
+            entity.shootDelay.canShoot = false;
+
+            Globals.instance.reloadImg.move_to(0);
+            Globals.instance.reloadImg.play();
+            Globals.instance.reloadingElement.style.visibility = "visible";
+
+            var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
+            sound.setPosition(basePos);
+            sound.setVelocity(velocity);
+            sound.setOrientation(baseDirection);
+            sound.play();
+          }
         }
       }
     }.bind(this));
   }
 }, {
   statics: {
-    MOVE_SPEED: 120,
-    JUMP_FORCE: 2500
+    MOVE_SPEED: 175,
+    JUMP_FORCE: 4000
   }
 });
 
@@ -307,6 +309,10 @@ PlayerHealthSystem = Class({
 
       healthElement.innerHTML = percentRounded + "%";
       healthElement.style.color = "#" + color.getHexString();
+
+      if (entity.health.hp <= 0) {
+        Globals.instance.playerAlive = false;
+      }
     });
   }
 });
