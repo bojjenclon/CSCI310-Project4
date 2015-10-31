@@ -9,7 +9,8 @@ Node Requires:
 * [stats.js](https://www.npmjs.com/package/stats.js)
 * [three.js](https://www.npmjs.com/package/three)
 * [tiny-ecs](https://www.npmjs.com/package/tiny-ecs)
-* [Behavior3JS](https://github.com/behavior3/behavior3js)
+* [Behavior3JS](https://www.npmjs.com/package/behavior3js)
+* [Hamster.js](https://www.npmjs.com/package/hamsterjs)
 
 Other Requirements:
 * [THREEx.KeyboardState](https://github.com/jeromeetienne/threex.keyboardstate)

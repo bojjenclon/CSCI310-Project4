@@ -27,14 +27,14 @@ Physijs.scripts.ammo = './ammo.js';
 
 // purpose: function as a basic FPS game using an ECS (entity-component system) pattern
 //
-// requires: RequestAnimationFrame.js, three.js, three-pointerlockcontrols.js, stats.js, js-class.js, physijs, tiny-ecs
-//           Game.js, ResourceManager.js
+// requires: RequestAnimationFrame.js, three.js, three-pointerlockcontrols.js, stats.js, js-class.js, physijs, tiny-ecs, Hamster.js
+//           ./js/*, /js/components/*
 //
 // author: Cornell Daly
 //
 // date: November 3, 2015
 //
-// additional notes: code is separated into multiple files
+// additional notes: code is separated into multiple files/folders
 
 var game = null;
 
