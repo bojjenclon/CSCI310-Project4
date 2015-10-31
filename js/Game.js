@@ -4,7 +4,6 @@ Game = Class({
     this.loadingContainer = options.loadingContainer;
     this.blocker = options.blocker;
     this.instructions = options.instructions;
-    this.crosshair = options.crosshair;
 
     this.stats = null;
 
@@ -76,11 +75,6 @@ Game = Class({
       camera: this.camera
     });
     this.scene.add(this.controls.getObject());
-
-    /* Setup Crosshair */
-
-    this.crosshair.style.left = ((window.innerWidth / 2) - 32) + 'px';
-    this.crosshair.style.top = ((window.innerHeight / 2) - 32) + 'px';
 
     var ambientLight = new THREE.AmbientLight(0xcbcbcb);
     this.scene.add(ambientLight);
@@ -234,8 +228,8 @@ Game = Class({
     this.loadingContainer.style.visibility = "hidden";
     this.blocker.style.visibility = "visible";
     this.instructions.style.visibility = "visible";
-    Globals.instance.hudElement.style.display = 'block';
-    //this.crosshair.style.display = 'block';
+    Globals.instance.hudLeftElement.style.display = 'block';
+    Globals.instance.hudRightElement.style.display = 'block';
 
     // ensure the user is at the top of the page
     document.body.scrollTop = document.documentElement.scrollTop = 0;
@@ -287,9 +281,6 @@ Game = Class({
 
     this.camera.aspect = (window.innerWidth / window.innerHeight);
     this.camera.updateProjectionMatrix();
-
-    this.crosshair.style.left = ((window.innerWidth / 2) - 32) + 'px';
-    this.crosshair.style.top = ((window.innerHeight / 2) - 32) + 'px';
   },
 
   onKeyDown: function(e) {

@@ -1,2 +1,30 @@
+#github {
+  position: fixed;
+  bottom: 20px;
+  left: 10px;
+  width: 200px;
+  height: 70px;
+  color: #dddddd;
+  text-decoration: none;
+  font-weight: bold;
+}
 
+#github img {
+  vertical-align: middle;
+}
+
+#londo {
+  position: fixed;
+  bottom: 20px;
+  right: 10px;
+  width: 200px;
+  height: 70px;
+  color: #dddddd;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#londo img {
+  vertical-align: middle;
+}
 

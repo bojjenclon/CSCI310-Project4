@@ -378,7 +378,7 @@ EntityFactory = Class({
 
         var velocity = -this.bulletSpeed;
 
-        // I have no clue why this works
+        // I have no clue why this works, but it seems to generate an arc fairly consistently
         var velOffset = 1 - (velocity / 100);
         forward.y -= distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
         forward.normalize();

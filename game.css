@@ -60,37 +60,7 @@ body, html {
   color: #ffcc00;
 }
 
-#github {
-  position: absolute;
-  top: 20px;
-  right: 10px;
-  width: 200px;
-  height: 70px;
-  color: #dddddd;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-#github img {
-  vertical-align: middle;
-}
-
-#londo {
-  position: absolute;
-  bottom: 20px;
-  right: 10px;
-  width: 200px;
-  height: 70px;
-  color: #dddddd;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-#londo img {
-  vertical-align: middle;
-}
-
-#hud {
+#hudLeft {
   position: absolute;
   left: 10px;
   top: 10px;
@@ -108,32 +78,46 @@ body, html {
   font-size: 16px;
 }
 
-#hud p {
-  margin-top: 0em;
-  margin-bottom: 0em;
+#hudLeft p {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
 }
 
-#hud #health {
+#hudLeft #health {
   color: #00ff00;
 }
 
-#hud #reloading {
+#hudLeft #reloading {
   height: 64px;
   visibility: hidden;
+  margin-top: 5px;
 }
 
-#hud #reloading .jsgif canvas {
+#hudLeft #reloading .jsgif canvas {
   vertical-align: middle;
 }
 
-#crosshair {
-  width: 100px;
-  height: 100px;
-  background-image: url('gfx/crosshair.png');
-  background-repeat: no-repeat;
+#hudRight {
   position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 120px;
+  height: 70px;
   display: none;
-  opacity: 0.7;
+  opacity: 70%;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px black!important;
+  background-color: #9E9E9E;
+  border: 4px ridge #808080;
+  border-radius: 25px;
+  padding: 15px;
+  font-size: 16px;
+}
+
+#hudRight p {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
 }
 
 #overlay {

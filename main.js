@@ -37,9 +37,11 @@ Physijs.scripts.ammo = './ammo.js';
 var game = null;
 
 function init() {
-  Globals.instance.hudElement = document.getElementById("hud");
+  Globals.instance.hudLeftElement = document.getElementById("hudLeft");
+  Globals.instance.hudRightElement = document.getElementById("hudRight");
 
   Globals.instance.healthElement = document.getElementById("health");
+  Globals.instance.ammoElement = document.getElementById("ammo");
   Globals.instance.scoreElement = document.getElementById("score");
 
   Globals.instance.reloadingElement = document.getElementById("reloading");
@@ -55,7 +57,6 @@ function init() {
     loadingContainer: document.getElementById("loadingContainer"),
     blocker: document.getElementById("blocker"),
     instructions: document.getElementById("instructions"),
-    crosshair: document.getElementById("crosshair"),
     modelsToPreload: [
       "models/potato.json",
       "models/potatoCannon.json",

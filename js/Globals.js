@@ -6,6 +6,8 @@ Globals = Class({
 
     this.healthElement = null;
 
+    this.ammoElement = null;
+
     this.scoreElement = null;
     this.score = 0;
 
