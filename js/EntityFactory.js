@@ -194,6 +194,8 @@ EntityFactory = Class({
 
       enemy.shootDelay.delayTheshold = 1.5;
 
+      options.bulletSpeed = THREE.Math.clamp(options.bulletSpeed, EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy);
+
       var FaceNode = b3.Class(b3.Action);
       FaceNode.prototype.name = 'FaceNode';
       FaceNode.prototype.parameters = {
@@ -220,22 +222,15 @@ EntityFactory = Class({
         var parentPos = tick.target.drawable.mesh.position.clone();
         var followingPos = this.facing.drawable.mesh.position.clone();
 
-        parentPos.y = 0;
-        followingPos.y = 0;
-
         var posDif = parentPos.clone();
         posDif.sub(followingPos);
 
-        var direction = new THREE.Vector3(0, 0, -1);
-        var rotation = new THREE.Euler(0, 0, 0, "YXZ");
-        rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
+        var forward = new THREE.Vector3(0, 0, -1);
+        forward.applyMatrix4(tick.target.velocity.rotationMatrix);
 
-        var forward = new THREE.Vector3();
-        forward.copy(direction).applyEuler(rotation);
+        var angle = forward.angleTo(posDif) * 180 / Math.PI;
 
-        var angle = forward.angleTo(posDif);
-
-        if (angle <= 0.1) {
+        if (Math.abs(angle) <= 5) {
           return b3.SUCCESS;
         }
 
@@ -360,29 +355,33 @@ EntityFactory = Class({
         spawnOffset.applyMatrix4(tick.target.velocity.rotationMatrix);
         spawnLocation.add(spawnOffset);
 
+        // the number of frames to "look ahead"
+        // this is used to lead the shot, making it easier to hit a moving target (in this case, the player)
+        var futureFrames = (EntityFactory.MAX_BULLET_SPEED.enemy - this.bulletSpeed) / 2.5;
+        futureFrames = THREE.Math.clamp(futureFrames, 2, 15);
+
         var followingVel = new THREE.Vector3(this.shootingAt.velocity.x, this.shootingAt.velocity.y, this.shootingAt.velocity.z);
-        followingVel.multiplyScalar(Globals.instance.dt);
+        followingVel.multiplyScalar(Globals.instance.dt * futureFrames);
         var predictedPos = followingPos.clone();
         predictedPos.add(followingVel);
 
-        /*var positionOffset = parentPos.clone().sub(followingPos);
-        predictedPos.add(positionOffset);*/
+        var posDif = spawnLocation.clone();
+        posDif.sub(predictedPos);
 
-        var rotation = new THREE.Euler(0, 0, 0, "YXZ");
-        rotation.set(tick.target.drawable.mesh.rotation.x, tick.target.drawable.mesh.rotation.y, 0);
+        var distance = posDif.length();
 
-        var forward = new THREE.Vector3(0, 0, 1);
-        forward.applyEuler(rotation);
+        var lookAtMatrix = new THREE.Matrix4();
+        lookAtMatrix.lookAt(predictedPos, spawnLocation, new THREE.Vector3(0, 1, 0));
 
-        var distance = spawnLocation.distanceTo(followingPos);
+        var forward = new THREE.Vector3(0, 0, -1);
+        forward.applyMatrix4(lookAtMatrix);
 
-        var velocity = this.bulletSpeed;
+        var velocity = -this.bulletSpeed;
 
         // I have no clue why this works
-        //var velOffset = (Math.PI / 2) - (velocity / 250);
-        //var velOffset = 1.3 + (velocity / 1000);
-        var velOffset = 1 + (velocity / 100);
-        forward.y += distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
+        var velOffset = 1 - (velocity / 100);
+        forward.y -= distance / ((velocity - (velocity * velOffset * EntityFactory.MASS.bullet)) * velocity);
+        forward.normalize();
 
         EntityFactory.instance.makePotato({
           scene: tick.target.drawable.scene,
@@ -451,7 +450,6 @@ EntityFactory = Class({
         gun.addComponent(C.CameraPitch);
 
         gun.cameraPitch.controls = options.cameraControls;
-        //gun.cameraPitch.offset = 90 * Math.PI / 180;
       }
 
       if (options.callback) {
@@ -810,6 +808,14 @@ EntityFactory = Class({
       player: 73,
       enemy: 81,
       bullet: 0.3
+    },
+
+    MIN_BULLET_SPEED: {
+      enemy: 25
+    },
+
+    MAX_BULLET_SPEED: {
+      enemy: 75
     }
   }
 });

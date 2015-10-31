@@ -194,7 +194,7 @@ Game = Class({
       scene: this.scene,
       position: new THREE.Vector3(0, 30, -200),
       aiTarget: this.player,
-      bulletSpeed: Math.random() * (60 - 15) + 15,
+      bulletSpeed: Utils.randomRange(EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy),
       hp: 15
     });
 
@@ -202,7 +202,7 @@ Game = Class({
       scene: this.scene,
       position: new THREE.Vector3(-100, 30, -150),
       aiTarget: this.player,
-      bulletSpeed: Math.random() * (60 - 15) + 15,
+      bulletSpeed: Utils.randomRange(EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy),
       hp: 15
     });
 
