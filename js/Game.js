@@ -342,6 +342,7 @@ Game = Class({
       }
     }
 
+    Globals.instance.ammoElement.innerHTML = (this.player.ammo.currentAmmo[this.player.gun.type] + ' / ' + this.player.ammo.maxAmmo[this.player.gun.type]);
     Globals.instance.weaponNameElement.innerHTML = Game.GUN_NAMES[this.player.gun.type];
     Globals.instance.weaponIconElement.src = Game.GUN_ICONS[this.player.gun.type];
 

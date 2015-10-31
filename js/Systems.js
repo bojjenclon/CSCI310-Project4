@@ -44,7 +44,7 @@ PlayerInputSystem = Class({
 
       if (entity.shootDelay.canShoot) {
         if (MouseController.instance.wasPressed.left) {
-          if (entity.gun.type === Game.GUN_TYPES.potatoCannon) {
+          if (entity.gun.type === Game.GUN_TYPES.potatoCannon && entity.ammo.currentAmmo[Game.GUN_TYPES.potatoCannon] > 0) {
             var direction = new THREE.Vector3();
             entity.cameraFollow.controls.getDirection(direction);
 
@@ -78,13 +78,16 @@ PlayerInputSystem = Class({
             Globals.instance.reloadImg.play();
             Globals.instance.reloadingElement.style.visibility = "visible";
 
+            entity.ammo.currentAmmo[entity.gun.type] -= 1;
+            Globals.instance.ammoElement.innerHTML = (entity.ammo.currentAmmo[entity.gun.type] + ' / ' + entity.ammo.maxAmmo[entity.gun.type]);
+
             var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
             sound.setPosition(gunPos);
             sound.setVelocity(velocity);
             sound.setOrientation(direction);
             sound.play();
           }
-          else if (entity.gun.type === Game.GUN_TYPES.scatterFries) {
+          else if (entity.gun.type === Game.GUN_TYPES.scatterFries && entity.ammo.currentAmmo[Game.GUN_TYPES.scatterFries] > 0) {
             var baseDirection = new THREE.Vector3();
             entity.cameraFollow.controls.getDirection(baseDirection);
 
@@ -97,7 +100,11 @@ PlayerInputSystem = Class({
             var bulletRot = entity.cameraFollow.object.rotation.clone();
             bulletRot.y += 90 * Math.PI / 180;
 
-            for (var i = 0; i < Utils.randomRange(4, 9); i++) {
+            var numFries = Math.round(Utils.randomRange(4, 9));
+            if (numFries > entity.ammo.currentAmmo[Game.GUN_TYPES.scatterFries]) {
+              numFries = entity.ammo.currentAmmo[Game.GUN_TYPES.scatterFries];
+            }
+            for (var i = 0; i < numFries; i++) {
               var bulletPos = basePos.clone();
               var bulletOffset = new THREE.Vector3(Utils.randomRange(-1, 1), Utils.randomRange(-1, 1), -30);
 
@@ -130,6 +137,9 @@ PlayerInputSystem = Class({
             Globals.instance.reloadImg.move_to(0);
             Globals.instance.reloadImg.play();
             Globals.instance.reloadingElement.style.visibility = "visible";
+
+            entity.ammo.currentAmmo[entity.gun.type] -= numFries;
+            Globals.instance.ammoElement.innerHTML = (entity.ammo.currentAmmo[entity.gun.type] + ' / ' + entity.ammo.maxAmmo[entity.gun.type]);
 
             var sound = Globals.instance.sound.getSound(Globals.DIR + 'sfx/arrowlessBow.mp3');
             sound.setPosition(basePos);

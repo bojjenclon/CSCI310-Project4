@@ -22,6 +22,7 @@ EntityFactory = Class({
       player.addComponent(C.ShootDelay);
       player.addComponent(C.Health);
       player.addComponent(C.Gun);
+      player.addComponent(C.Ammo);
 
       player.identifier.type = Globals.ENTITY_TYPES.player;
 
@@ -103,8 +104,17 @@ EntityFactory = Class({
           player.gun.entity = gun;
           player.gun.mesh = gun.drawable.mesh;
           player.gun.type = Game.GUN_TYPES.potatoCannon;
+
+          player.ammo.currentAmmo[Game.GUN_TYPES.potatoCannon] = 54;
+          player.ammo.currentAmmo[Game.GUN_TYPES.scatterFries] = 72;
+
+          player.ammo.maxAmmo[Game.GUN_TYPES.potatoCannon] = 54;
+          player.ammo.maxAmmo[Game.GUN_TYPES.scatterFries] = 72;
+
+          Globals.instance.ammoElement.innerHTML = (player.ammo.currentAmmo[player.gun.type] + ' / ' + player.ammo.maxAmmo[player.gun.type]);
         }
       });
+
     }.bind(this));
 
     return player;
