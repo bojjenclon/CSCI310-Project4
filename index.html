@@ -1,34 +1,134 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html class="no-js" lang="en">
 
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Stud of the Spuds</title>
+
+    <link rel="stylesheet" href="css/foundation.css" />
+    <script src="js/vendor/modernizr.js"></script>
 
     <link rel="stylesheet" type="text/css" href="main.css" />
   </head>
 
   <body>
-    <h1>Stud of the Spuds: Become the Spudliest!</h1>
 
-    <p>
-      Take the role of a valiant warrior battling to become the spudliest stud the reknowned Potato Arena has ever seen! Armed with only your trusty Spud Cannon, battle an onslaught of tubers to obtain your well-deserved title.
-    </p>
+    <div class="row">
 
-    <h2>Weapons:</h2>
-    <p>
-      <ul>
-        <li>Spud Cannon - Gun</li>
-        <li>Gnaids (Gnocchi) - Grenades</li>
-      </ul>
-    </p>
+      <div class="small-12 columns text-center">
+        <h1>Stud of the Spuds</h1>
+      </div>
 
-    <h2>Instructions:</h2>
-    <p>
-      Kill enemies with your mighty Spud Cannon to earn points. Be careful, your enemies are also armed with potato guns (although they clearly aren't as cool as yours). Earn bonus points by knocking their weak-tubers clean out of the air! Once a potato hits an object (yes, any object) it becomes cold. You'll need to hit your targets with hot potatoes to score points. At the end of all five waves, you'll be rewarded a title based on the number of points you earned. Rack up enough points to become the Stud of the Spuds and take your seat on the revered Starchy Throne!
-    </p>
+    </div>
 
-    <div style="text-align: center">
-      <button onclick="window.location='game.html'">Enter Arena</button>
+    <div class="row">
+
+      <div class="small-12 columns">
+
+        <div class="panel">
+
+          <h3>Become the Spudliest!</h3>
+
+          <p>
+            Take the role of a valiant warrior battling to become the spudliest stud the reknowned Potato Arena has ever seen! Armed with only your trusty Spud Cannon, battle an onslaught of tubers to obtain your well-deserved title.
+          </p>
+
+        </div>
+
+        <ul class="accordion" data-accordion>
+
+          <li class="accordion-navigation">
+
+            <a href="#panel1a">Overview</a>
+            <div id="panel1a" class="content active">
+              Kill enemies with your mighty Spud Cannon to earn points. Be careful, your enemies are also armed with potato guns (although they clearly aren't as cool as yours). Earn bonus points by knocking their weak-tubers clean out of the air! Once one of your potato-based munitions hits an object (yes, any object) it becomes cold. Your ammo will need to be hot upon reaching its target to apply its damage (and score those much needed points!). At the end of all five waves, you'll be rewarded a title based on the number of points you've earned. Rack up enough points to become the Stud of the Spuds and take your seat on the revered Starchy Throne!
+            </div>
+
+          </li>
+
+          <li class="accordion-navigation">
+
+            <a href="#panel2a">Weapons</a>
+            <div id="panel2a" class="content">
+
+              <div class="row">
+
+                <div class="small-2 columns">
+                  <p style="font-weight: bold">
+                    Name:
+                  </p>
+                </div>
+
+                <div class="small-2 columns">
+                  <p style="font-weight: bold">
+                    Type:
+                  </p>
+                </div>
+
+                <div class="small-8 columns">
+                  <p style="font-weight: bold">
+                    Description:
+                  </p>
+                </div>
+
+              </div>
+
+              <div class="row">
+
+                <div class="small-2 columns">
+                  <p>
+                    T.A.T.E.R
+                  </p>
+                </div>
+
+                <div class="small-2 columns">
+                  <p>
+                    Gun
+                  </p>
+                </div>
+
+                <div class="small-8 columns">
+                  <p>
+                    The Totally Awesome Tuber Expelling Rifle shoots out a single potato that deals a large amount of damage to the first foe hit. Good for trying to take down one target at a time.
+                  </p>
+                </div>
+
+              </div>
+
+              <div class="row">
+
+                <div class="small-2 columns">
+                  <p>
+                    Scatter Fries
+                  </p>
+                </div>
+
+                <div class="small-2 columns">
+                  <p>
+                    Gun
+                  </p>
+                </div>
+
+                <div class="small-8 columns">
+                  <p>
+                    A modification to the T.A.T.E.R allows it to dice its tubers on their way out. The Scatter Fries mod shoots out a random number of french fries in a spread-shot. Fries deal reduced damage, but have a higher chance of hitting multiple targets or blocking incoming projectiles. Good for fighting off swarms of enemies.
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+
+          </li>
+
+        </ul>
+
+        <a href="game.html" class="button alert expand">Enter the Arena</a>
+
+      </div>
+
     </div>
 
     <a id="github" href="https://github.com/bojjenclon/CSCI310-Project4">
@@ -38,6 +138,13 @@
     <a id="londo" href="./">
       View on Londo <img src="gfx/octocatSad.png" />
     </a>
+
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script>
+    $(document).foundation();
+
+    </script>
   </body>
 
 </html>

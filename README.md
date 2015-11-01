@@ -17,6 +17,9 @@ Other Requirements:
 * [THREEx.RendererStats](https://github.com/jeromeetienne/threex.rendererstats)
 * [libgif-js](https://github.com/buzzfeed/libgif-js)
 
+Main Website Made With:
+* [Foundation](http://foundation.zurb.com/)
+
 Physijs modified to accept collision filtering. Idea/code taken from:  
 * https://github.com/chandlerprall/Physijs/issues/107
 * http://www.bulletphysics.org/mediawiki-1.5.8/index.php/Collision_Filtering
