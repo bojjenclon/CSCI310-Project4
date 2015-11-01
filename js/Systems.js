@@ -62,7 +62,6 @@ PlayerInputSystem = Class({
             bulletPos.add(bulletOffset);
 
             var bulletRot = entity.cameraFollow.object.rotation.clone();
-            bulletRot.y += 90 * Math.PI / 180;
 
             EntityFactory.instance.makePotato({
               scene: entity.drawable.scene,
@@ -100,7 +99,6 @@ PlayerInputSystem = Class({
             rotationMatrix.multiply(yMatrix);
 
             var bulletRot = entity.cameraFollow.object.rotation.clone();
-            bulletRot.y += 90 * Math.PI / 180;
 
             var numFries = Math.round(Utils.randomRange(4, 9));
             if (numFries > entity.ammo.currentAmmo[Game.GUN_TYPES.scatterFries]) {

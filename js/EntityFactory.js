@@ -154,7 +154,9 @@ EntityFactory = Class({
       EntityFactory.COLLISION_TYPES.enemyBullet);
 
     enemy.drawable.mesh.position.copy(options.position);
-    //enemy.drawable.mesh.rotation.copy(options.rotation);
+    if (options.rotation) {
+      enemy.drawable.mesh.rotation.copy(options.rotation);
+    }
 
     enemy.drawable.scene.add(enemy.drawable.mesh);
 
@@ -206,6 +208,7 @@ EntityFactory = Class({
     enemy.shootDelay.delayTheshold = 1.5;
 
     options.bulletSpeed = THREE.Math.clamp(options.bulletSpeed, EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy);
+    options.shootDistance = Math.max(options.shootDistance, options.leashDistance);
 
     var FaceNode = b3.Class(b3.Action);
     FaceNode.prototype.name = 'FaceNode';
@@ -241,7 +244,7 @@ EntityFactory = Class({
 
       var angle = forward.angleTo(posDif) * 180 / Math.PI;
 
-      if (Math.abs(angle) <= 5) {
+      if (Math.abs(angle) <= 10) {
         return b3.SUCCESS;
       }
 
@@ -251,7 +254,7 @@ EntityFactory = Class({
       var parentRotation = new THREE.Quaternion().setFromEuler(tick.target.drawable.mesh.rotation);
       var targetRotation = new THREE.Quaternion().setFromRotationMatrix(lookAtMatrix);
 
-      var str = Math.min(3 * Globals.instance.dt, 5);
+      var str = Math.min(Globals.instance.dt / 2, 0.5);
 
       parentRotation.slerp(targetRotation, str);
 
@@ -302,6 +305,7 @@ EntityFactory = Class({
       this.__Action_initialize();
 
       this.following = settings.following;
+      this.leashDistance = settings.leashDistance;
     };
 
     FollowNode.prototype.tick = function(tick) {
@@ -314,7 +318,7 @@ EntityFactory = Class({
 
       var distance = parentPos.distanceTo(followingPos);
 
-      if (distance < 50) {
+      if (distance < this.leashDistance) {
         return b3.SUCCESS;
       }
 
@@ -348,6 +352,7 @@ EntityFactory = Class({
 
       this.shootingAt = settings.shootingAt;
       this.bulletSpeed = settings.bulletSpeed;
+      this.shootDistance = settings.shootDistance;
     };
 
     ShootNode.prototype.tick = function(tick) {
@@ -380,6 +385,10 @@ EntityFactory = Class({
       posDif.sub(predictedPos);
 
       var distance = posDif.length();
+
+      if (distance > this.shootDistance) {
+        return b3.FAILURE;
+      }
 
       var lookAtMatrix = new THREE.Matrix4();
       lookAtMatrix.lookAt(predictedPos, spawnLocation, new THREE.Vector3(0, 1, 0));
@@ -419,11 +428,13 @@ EntityFactory = Class({
             new RandomChildNode({
               children: [
                 new FollowNode({
-                  following: options.aiTarget
+                  following: options.aiTarget,
+                  leashDistance: options.leashDistance
                 }),
                 new ShootNode({
                   shootingAt: options.aiTarget,
-                  bulletSpeed: options.bulletSpeed
+                  bulletSpeed: options.bulletSpeed,
+                  shootDistance: options.shootDistance
                 })
               ],
               chance: [
@@ -822,6 +833,22 @@ EntityFactory = Class({
 
     MAX_BULLET_SPEED: {
       enemy: 75
+    },
+
+    MIN_LEASH_DISTANCE: {
+      enemy: 50
+    },
+
+    MAX_LEASH_DISTANCE: {
+      enemy: 250
+    },
+
+    MIN_SHOOT_DISTANCE: {
+      enemy: 50
+    },
+
+    MAX_SHOOT_DISTANCE: {
+      enemy: 250
     }
   }
 });

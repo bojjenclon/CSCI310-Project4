@@ -25,7 +25,7 @@ Globals = Class({
 
     this.sound = null;
 
-    this.currentWave = 1;
+    this.currentWave = 0;
   }
 }, {
   statics: {

@@ -205,22 +205,6 @@ Game = Class({
       hp: 20
     });
 
-    EntityFactory.instance.makeEnemy({
-      scene: this.scene,
-      position: new THREE.Vector3(0, 30, -200),
-      aiTarget: this.player,
-      bulletSpeed: Utils.randomRange(EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy),
-      hp: 15
-    });
-
-    EntityFactory.instance.makeEnemy({
-      scene: this.scene,
-      position: new THREE.Vector3(-100, 30, -150),
-      aiTarget: this.player,
-      bulletSpeed: Utils.randomRange(EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy),
-      hp: 15
-    });
-
     /* Setup Systems */
 
     this.systems.push(new PlayerInputSystem(EntityFactory.instance.entities));
@@ -312,8 +296,25 @@ Game = Class({
         Globals.instance.waveElement.innerHTML = 'Victory!';
       }
       else {
+        this.createNextWave(Globals.instance.currentWave * 3);
+
         Globals.instance.waveElement.innerHTML = Globals.instance.currentWave + ' / ' + Game.TOTAL_WAVES;
       }
+    }
+  },
+
+  createNextWave: function(enemyCount) {
+    for (var i = 0; i < enemyCount; i++) {
+      EntityFactory.instance.makeEnemy({
+        scene: this.scene,
+        position: new THREE.Vector3(Utils.randomRange(-750, 750), 30, Utils.randomRange(-750, 750)),
+        rotation: new THREE.Euler(0, Utils.randomRange(-Math.PI / 2, Math.PI / 2), 0, 'XYZ'),
+        leashDistance: Utils.randomRange(EntityFactory.MIN_LEASH_DISTANCE.enemy, EntityFactory.MAX_LEASH_DISTANCE.enemy),
+        aiTarget: this.player,
+        bulletSpeed: Utils.randomRange(EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy),
+        shootDistance: Utils.randomRange(EntityFactory.MIN_SHOOT_DISTANCE.enemy, EntityFactory.MAX_SHOOT_DISTANCE.enemy),
+        hp: 15
+      });
     }
   },
 
