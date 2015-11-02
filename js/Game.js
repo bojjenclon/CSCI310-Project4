@@ -56,8 +56,6 @@ Game = Class({
       antialias: true
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    //this.renderer.setClearColor(0xffffff, 1);
-    this.renderer.setClearColor(0xbc00bc, 1);
     this.container.appendChild(this.renderer.domElement);
 
     /* THREEx.RendererStats Setup */
@@ -85,7 +83,7 @@ Game = Class({
 
     // Put in a camera
     var aspectRatio = window.innerWidth / window.innerHeight;
-    this.camera = new THREE.PerspectiveCamera(45, aspectRatio, 0.1, 4000);
+    this.camera = new THREE.PerspectiveCamera(45, aspectRatio, 0.5, 4000);
     this.scene.add(this.camera);
 
     /* Camera Controller */
@@ -192,21 +190,7 @@ Game = Class({
   makeGame: function() {
     /* Create Entities */
 
-    EntityFactory.instance.makeGround({
-      scene: this.scene,
-      width: 2000,
-      height: 2000
-    });
-
-    this.player = EntityFactory.instance.makePlayer({
-      scene: this.scene,
-      position: new THREE.Vector3(0, 30, 0),
-      controls: this.controls,
-      controlsObject: this.controls.getObject(),
-      cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
-      gunOffset: new THREE.Vector3(9, 8, 0),
-      hp: 30
-    });
+    this.createRequiredEntities();
 
     /* Setup Systems */
 
@@ -316,6 +300,12 @@ Game = Class({
 
   createNextWave: function(enemyCount) {
     for (var i = 0; i < enemyCount; i++) {
+      var enemyPosition = new THREE.Vector3(Utils.randomRange(-750, 750), 30, Utils.randomRange(-750, 750));
+
+      while (enemyPosition.distanceTo(this.player.drawable.mesh.position) < Game.SPAWN_SAFETY_BUBBLE) {
+        enemyPosition = new THREE.Vector3(Utils.randomRange(-750, 750), 30, Utils.randomRange(-750, 750));
+      }
+
       EntityFactory.instance.makeEnemy({
         scene: this.scene,
         position: new THREE.Vector3(Utils.randomRange(-750, 750), 30, Utils.randomRange(-750, 750)),
@@ -324,7 +314,8 @@ Game = Class({
         aiTarget: this.player,
         bulletSpeed: Utils.randomRange(EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy),
         shootDistance: Utils.randomRange(EntityFactory.MIN_SHOOT_DISTANCE.enemy, EntityFactory.MAX_SHOOT_DISTANCE.enemy),
-        hp: 15
+        hp: Utils.randomRange(EntityFactory.MIN_START_HP.enemy, EntityFactory.MAX_START_HP.enemy),
+        color: new THREE.Color(Math.random(), Math.random(), Math.random())
       });
     }
   },
@@ -399,10 +390,59 @@ Game = Class({
     Globals.instance.reloadImg.pause();
     Globals.instance.reloadingElement.style.visibility = "hidden";
 
+    this.createRequiredEntities();
+
+    Globals.instance.currentWave = 0;
+
+    this.waveCheck();
+  },
+
+  createRequiredEntities: function() {
     EntityFactory.instance.makeGround({
       scene: this.scene,
       width: 2000,
       height: 2000
+    });
+
+
+    EntityFactory.instance.makeSkyWall({
+      scene: this.scene,
+      width: 2000,
+      height: 1000,
+      position: new THREE.Vector3(0, 500, -1000),
+      rotation: new THREE.Euler(Math.PI / 2, Math.PI, 0, 'XYZ')
+    });
+
+    EntityFactory.instance.makeSkyWall({
+      scene: this.scene,
+      width: 2000,
+      height: 1000,
+      position: new THREE.Vector3(0, 500, 1000),
+      rotation: new THREE.Euler(Math.PI / 2, 0, 0, 'XYZ')
+    });
+
+    EntityFactory.instance.makeSkyWall({
+      scene: this.scene,
+      width: 2000,
+      height: 1000,
+      position: new THREE.Vector3(1000, 500, 0),
+      rotation: new THREE.Euler(Math.PI / 2, 0, -Math.PI / 2, 'XYZ')
+    });
+
+    EntityFactory.instance.makeSkyWall({
+      scene: this.scene,
+      width: 2000,
+      height: 1000,
+      position: new THREE.Vector3(-1000, 500, 0),
+      rotation: new THREE.Euler(Math.PI / 2, 0, Math.PI / 2, 'XYZ')
+    });
+
+    EntityFactory.instance.makeSkyWall({
+      scene: this.scene,
+      width: 2000,
+      height: 2000,
+      position: new THREE.Vector3(0, 1000, 0),
+      rotation: new THREE.Euler(0, Math.PI, 0, 'XYZ')
     });
 
     this.player = EntityFactory.instance.makePlayer({
@@ -412,12 +452,8 @@ Game = Class({
       controlsObject: this.controls.getObject(),
       cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
       gunOffset: new THREE.Vector3(9, 8, 0),
-      hp: 30
+      hp: 40
     });
-
-    Globals.instance.currentWave = 0;
-
-    this.waveCheck();
   },
 
   onResize: function(e) {
@@ -629,7 +665,9 @@ Game = Class({
     BASE_GUN_TYPE: 1,
     TOTAL_GUN_TYPES: 2,
 
-    TOTAL_WAVES: 5
+    TOTAL_WAVES: 5,
+
+    SPAWN_SAFETY_BUBBLE: 50
   }
 });
 

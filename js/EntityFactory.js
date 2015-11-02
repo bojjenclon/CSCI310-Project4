@@ -163,10 +163,12 @@ EntityFactory = Class({
 
     enemy.drawable.scene = options.scene;
 
+    var color = options.color || 0x0000ff;
+
     enemy.drawable.mesh = new Physijs.CapsuleMesh(
       model.geometry,
       Physijs.createMaterial(new THREE.MeshPhongMaterial({
-        color: 0x0000ff
+        color: color
       }), 0.9, 0.1), EntityFactory.MASS.enemy);
     enemy.drawable.mesh.entity = enemy;
 
@@ -590,14 +592,14 @@ EntityFactory = Class({
       var hitEnemy = potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
       if ((hitPlayer || hitEnemy) && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
-        if (other_object.entity.hasComponent(C.Shield) && other_object.entity.shield.enabled && other_object.entity.shield.currentValue >= 5) {
-          Utils.damageShield(other_object.entity, 5);
+        if (other_object.entity.hasComponent(C.Shield) && other_object.entity.shield.enabled && other_object.entity.shield.currentValue >= EntityFactory.BULLET_DAMAGE.potato) {
+          Utils.damageShield(other_object.entity, EntityFactory.BULLET_DAMAGE.potato);
         }
         else {
           other_object.entity.addComponent(C.Hurt);
           other_object.entity.hurt.originalColor = other_object.material.color.clone();
 
-          other_object.entity.health.hp -= 5;
+          other_object.entity.health.hp -= EntityFactory.BULLET_DAMAGE.potato;
           other_object.entity.health.changed = true;
 
           potato.oneTimeHit.alreadyHit.push(other_object.uuid);
@@ -749,7 +751,7 @@ EntityFactory = Class({
         other_object.entity.addComponent(C.Hurt);
         other_object.entity.hurt.originalColor = other_object.material.color.clone();
 
-        other_object.entity.health.hp -= 2.5;
+        other_object.entity.health.hp -= EntityFactory.BULLET_DAMAGE.fry;
         other_object.entity.health.changed = true;
 
         fry.oneTimeHit.alreadyHit.push(other_object.uuid);
@@ -985,6 +987,53 @@ EntityFactory = Class({
       EntityFactory.COLLISION_TYPES.pickup);
 
     ground.drawable.scene.add(ground.drawable.mesh);
+  },
+
+  /*
+   * Creates a sky wall entity. These are used to encase the scene in a sky.
+   * Requires a scene, a position, a width, and a height.
+   */
+  makeSkyWall: function(options) {
+    var skyWall = this.entities.createEntity();
+
+    skyWall.addComponent(C.Identifier);
+    skyWall.addComponent(C.Position);
+    skyWall.addComponent(C.Drawable);
+
+    skyWall.identifier.type = Globals.ENTITY_TYPES.obstacle;
+
+    skyWall.drawable.scene = options.scene;
+
+    var mainTex = ResourceManager.instance.getTexture('gfx/skyTex2.jpg');
+    mainTex.wrapS = mainTex.wrapT = THREE.RepeatWrapping;
+    mainTex.minFilter = THREE.LinearMipMapLinearFilter;
+    mainTex.magFilter = THREE.LinearFilter;
+
+    skyWall.drawable.mesh = new Physijs.BoxMesh(
+      new THREE.BoxGeometry(options.width, 1, options.height),
+      new THREE.MeshPhongMaterial({
+        map: mainTex,
+        side: THREE.DoubleSide
+      }), 0);
+    skyWall.drawable.mesh.entity = skyWall;
+
+    if (options.position) {
+      skyWall.drawable.mesh.position.copy(options.position);
+    }
+    if (options.rotation) {
+      skyWall.drawable.mesh.rotation.copy(options.rotation);
+    }
+
+    skyWall.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.obstacle;
+    skyWall.drawable.mesh._physijs.collision_masks = (
+      EntityFactory.COLLISION_TYPES.obstacle |
+      EntityFactory.COLLISION_TYPES.player |
+      EntityFactory.COLLISION_TYPES.enemy |
+      EntityFactory.COLLISION_TYPES.playerBullet |
+      EntityFactory.COLLISION_TYPES.enemyBullet |
+      EntityFactory.COLLISION_TYPES.pickup);
+
+    skyWall.drawable.scene.add(skyWall.drawable.mesh);
   }
 }, {
   statics: {
@@ -1009,13 +1058,18 @@ EntityFactory = Class({
     },
 
     MOVE_SPEED: {
-      enemy: 160
+      enemy: 275
     },
 
     MASS: {
       player: 73,
       enemy: 81,
       bullet: 0.3
+    },
+
+    BULLET_DAMAGE: {
+      potato: 7,
+      fry: 3
     },
 
     MIN_BULLET_SPEED: {
@@ -1040,6 +1094,14 @@ EntityFactory = Class({
 
     MAX_SHOOT_DISTANCE: {
       enemy: 250
+    },
+
+    MIN_START_HP: {
+      enemy: 10
+    },
+
+    MAX_START_HP: {
+      enemy: 25
     }
   }
 });

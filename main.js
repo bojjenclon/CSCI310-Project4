@@ -84,7 +84,8 @@ function init() {
       'gfx/brick-floor-tileable_SPEC.jpg',
       'gfx/smoketex.jpg',
       'gfx/potatoIcon.png',
-      'gfx/frenchFriesIcon.png'
+      'gfx/frenchFriesIcon.png',
+      'gfx/skyTex2.jpg'
     ]
   };
   game = new Game(gameOptions);

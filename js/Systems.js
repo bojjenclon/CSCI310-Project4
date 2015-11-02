@@ -79,7 +79,7 @@ PlayerInputSystem = Class({
               rotation: bulletRot,
               direction: direction,
               rotationMatrix: entity.velocity.rotationMatrix,
-              velocity: 35,
+              velocity: PlayerInputSystem.POTATO_SPEED,
               owner: 'player'
             });
 
@@ -137,7 +137,7 @@ PlayerInputSystem = Class({
                 rotation: bulletRot,
                 direction: bulletDirection,
                 rotationMatrix: entity.velocity.rotationMatrix,
-                velocity: 0.5,
+                velocity: PlayerInputSystem.FRY_SPEED,
                 owner: 'player'
               });
             }
@@ -163,8 +163,10 @@ PlayerInputSystem = Class({
   }
 }, {
   statics: {
-    MOVE_SPEED: 175,
-    JUMP_FORCE: 4000
+    MOVE_SPEED: 300,
+    JUMP_FORCE: 4000,
+    POTATO_SPEED: 70,
+    FRY_SPEED: 0.5
   }
 });
 
