@@ -102,6 +102,9 @@ EntityFactory = Class({
     });
 
     player.health.hp = player.health.maxHP = options.hp || 20;
+    player.health.changed = true;
+
+    player.shield.changed = true;
 
     player.position.x = options.position.x;
     player.position.y = options.position.y;

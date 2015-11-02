@@ -7,3 +7,6 @@ Enemies:
 Weapons:
 * Fry scatter shot
 * Baked potato orbital nuke
+
+Bugs:
+* Look into scroll wheel breaking on restart
