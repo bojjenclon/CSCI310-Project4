@@ -452,10 +452,21 @@ DeathSystem = Class({
         if (entity.hasComponent(C.Drawable)) {
           var geometry, material;
 
-          if (entity.drawable.mesh._physijs.collision_type === EntityFactory.COLLISION_TYPES.enemy) {
+          if (entity.identifier.type === Globals.ENTITY_TYPES.enemy) {
             Globals.instance.score += 10;
 
             Globals.instance.scoreElement.innerHTML = Globals.instance.score;
+
+            if (entity.hasComponent(C.DropsPickup) && Math.random() < entity.dropsPickup.dropChance) {
+              var randPickup = Math.floor(Utils.randomRange(0, entity.dropsPickup.dropTypes.length));
+              var pickupToMake = entity.dropsPickup.dropTypes[randPickup];
+
+              EntityFactory.instance["make" + pickupToMake + "Pickup"]({
+                scene: entity.drawable.scene,
+                position: entity.drawable.mesh.position.clone(),
+                rotation: new THREE.Euler(0, Utils.randomRange(-Math.PI / 2, Math.PI / 2), 0, 'XYZ')
+              });
+            }
           }
 
           if (entity.health.healthBar) {

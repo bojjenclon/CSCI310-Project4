@@ -135,6 +135,7 @@ EntityFactory = Class({
     enemy.addComponent(C.Drawable);
     enemy.addComponent(C.Health);
     enemy.addComponent(C.ShootDelay);
+    enemy.addComponent(C.DropsPickup);
     enemy.addComponent(C.AI);
 
     enemy.identifier.type = Globals.ENTITY_TYPES.enemy;
@@ -211,6 +212,8 @@ EntityFactory = Class({
     enemy.drawable.mesh.add(enemy.health.healthBar);
 
     enemy.shootDelay.delayTheshold = 1.5;
+
+    enemy.dropsPickup.dropTypes = ["Health", "Ammo"];
 
     options.bulletSpeed = THREE.Math.clamp(options.bulletSpeed, EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy);
     options.shootDistance = Math.max(options.shootDistance, options.leashDistance);
@@ -378,7 +381,7 @@ EntityFactory = Class({
 
       // the number of frames to "look ahead"
       // this is used to lead the shot, making it easier to hit a moving target (in this case, the player)
-      var futureFrames = (EntityFactory.MAX_BULLET_SPEED.enemy - this.bulletSpeed) / 2.5;
+      var futureFrames = (EntityFactory.MAX_BULLET_SPEED.enemy - this.bulletSpeed) / 3.5;
       futureFrames = THREE.Math.clamp(futureFrames, 2, 15);
 
       var followingVel = new THREE.Vector3(this.shootingAt.velocity.x, this.shootingAt.velocity.y, this.shootingAt.velocity.z);
@@ -826,6 +829,68 @@ EntityFactory = Class({
     pickup.pickup.method = PickupMethods.heal;
     pickup.pickup.parameters = {
       healAmount: 5
+    };
+  },
+
+  makeAmmoPickup: function(options) {
+    var pickup = this.entities.createEntity();
+
+    pickup.addTag("pickup");
+
+    pickup.addComponent(C.Identifier);
+    pickup.addComponent(C.Position);
+    pickup.addComponent(C.Drawable);
+    pickup.addComponent(C.Expirable);
+    pickup.addComponent(C.Pickup);
+
+    pickup.identifier.type = Globals.ENTITY_TYPES.pickup;
+
+    var model = ResourceManager.instance.getModel('models/pickupBox.json').clone();
+
+    pickup.drawable.scene = options.scene;
+
+    pickup.drawable.mesh = new Physijs.BoxMesh(
+      model.geometry,
+      Physijs.createMaterial(model.material, 0.7, 0.01),
+      1.2);
+    pickup.drawable.mesh.entity = pickup;
+
+    pickup.drawable.mesh.material.materials.forEach(function(mat) {
+      mat.color.setHex(0xddcc00);
+    });
+
+    pickup.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.pickup;
+    pickup.drawable.mesh._physijs.collision_masks = (
+      EntityFactory.COLLISION_TYPES.obstacle |
+      EntityFactory.COLLISION_TYPES.player |
+      EntityFactory.COLLISION_TYPES.pickup);
+
+    pickup.drawable.mesh.position.copy(options.position);
+    if (options.rotation) {
+      pickup.drawable.mesh.rotation.copy(options.rotation);
+    }
+    if (options.scale) {
+      pickup.drawable.mesh.scale.copy(options.scale);
+    }
+
+    pickup.drawable.scene.add(pickup.drawable.mesh);
+
+    pickup.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+      if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.player) {
+        pickup.pickup.parameters.target = other_object.entity;
+        pickup.pickup.parameters.gun = other_object.entity.gun.type;
+
+        pickup.pickup.method(pickup);
+
+        Globals.instance.ammoElement.innerHTML = (other_object.entity.ammo.currentAmmo[other_object.entity.gun.type] + ' / ' + other_object.entity.ammo.maxAmmo[other_object.entity.gun.type]);
+      }
+    }.bind(this));
+
+    pickup.expirable.maxAge = 15;
+
+    pickup.pickup.method = PickupMethods.increaseAmmo;
+    pickup.pickup.parameters = {
+      ammoAmount: 10
     };
   },
 
