@@ -330,6 +330,14 @@ Game = Class({
   onKeyDown: function(e) {
     var keyCode = ('which' in event) ? event.which : event.keyCode;
 
+    if (keyCode === 69) {
+      EntityFactory.instance.makeHealthPickup({
+        scene: this.scene,
+        position: new THREE.Vector3(Utils.randomRange(-500, 500), 30, Utils.randomRange(-500, 500)),
+        rotation: new THREE.Euler(0, Utils.randomRange(-Math.PI / 2, Math.PI / 2), 0, 'XYZ')
+      });
+    }
+
     return (keyCode !== Game.KEY_CODES.space);
   },
 

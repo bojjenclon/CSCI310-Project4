@@ -16,6 +16,7 @@ module.exports = {
   CameraPitch: require('./components/CameraPitch.js'),
   Gun: require('./components/Gun.js'),
   Ammo: require('./components/Ammo.js'),
-  Shield: require('./components/Shield.js')
+  Shield: require('./components/Shield.js'),
+  Pickup: require('./components/Pickup.js')
 };
 

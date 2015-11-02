@@ -45,7 +45,9 @@ Globals = Class({
       ground: 2,
       obstacle: 3,
 
-      bullet: 4
+      bullet: 4,
+
+      pickup: 5
     }
   }
 });

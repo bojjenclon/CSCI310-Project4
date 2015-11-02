@@ -2,6 +2,7 @@ var EntityManager = require('tiny-ecs').EntityManager;
 var b3 = require('./../b3core.0.1.0.js');
 var Utils = require('./Utils.js');
 var C = require('./Components.js');
+var PickupMethods = require('./PickupMethods.js');
 
 EntityFactory = Class({
   constructor: function() {
@@ -45,7 +46,8 @@ EntityFactory = Class({
     player.drawable.mesh._physijs.collision_masks = (
       EntityFactory.COLLISION_TYPES.obstacle |
       EntityFactory.COLLISION_TYPES.enemy |
-      EntityFactory.COLLISION_TYPES.enemyBullet);
+      EntityFactory.COLLISION_TYPES.enemyBullet |
+      EntityFactory.COLLISION_TYPES.pickup);
 
     player.drawable.scene.add(player.drawable.mesh);
 
@@ -64,7 +66,7 @@ EntityFactory = Class({
         player.health.hp--;
         player.health.changed = true;
       }
-      else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && player.hasComponent(C.Hurt) === false) {
+      else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && player.shield.enabled === false) {
         var hitSounds = [
           "sfx/hurt1.mp3",
           "sfx/hurt2.mp3",
@@ -768,6 +770,65 @@ EntityFactory = Class({
     return fry;
   },
 
+  makeHealthPickup: function(options) {
+    var pickup = this.entities.createEntity();
+
+    pickup.addTag("pickup");
+
+    pickup.addComponent(C.Identifier);
+    pickup.addComponent(C.Position);
+    pickup.addComponent(C.Drawable);
+    pickup.addComponent(C.Expirable);
+    pickup.addComponent(C.Pickup);
+
+    pickup.identifier.type = Globals.ENTITY_TYPES.pickup;
+
+    var model = ResourceManager.instance.getModel('models/pickupBox.json').clone();
+
+    pickup.drawable.scene = options.scene;
+
+    pickup.drawable.mesh = new Physijs.BoxMesh(
+      model.geometry,
+      Physijs.createMaterial(model.material, 0.7, 0.01),
+      1.2);
+    pickup.drawable.mesh.entity = pickup;
+
+    pickup.drawable.mesh.material.materials.forEach(function(mat) {
+      mat.color.setHex(0xdd1100);
+    });
+
+    pickup.drawable.mesh._physijs.collision_type = EntityFactory.COLLISION_TYPES.pickup;
+    pickup.drawable.mesh._physijs.collision_masks = (
+      EntityFactory.COLLISION_TYPES.obstacle |
+      EntityFactory.COLLISION_TYPES.player |
+      EntityFactory.COLLISION_TYPES.pickup);
+
+    pickup.drawable.mesh.position.copy(options.position);
+    if (options.rotation) {
+      pickup.drawable.mesh.rotation.copy(options.rotation);
+    }
+    if (options.scale) {
+      pickup.drawable.mesh.scale.copy(options.scale);
+    }
+
+    pickup.drawable.scene.add(pickup.drawable.mesh);
+
+    pickup.drawable.mesh.addEventListener('collision', function(other_object, relative_velocity, relative_rotation, contact_normal) {
+      if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.player) {
+        pickup.pickup.parameters.target = other_object.entity;
+
+        pickup.pickup.method(pickup);
+      }
+    }.bind(this));
+
+    pickup.expirable.maxAge = 15;
+
+    pickup.pickup.method = PickupMethods.heal;
+    pickup.pickup.parameters = {
+      healAmount: 5
+    };
+  },
+
   makeGround: function(options) {
     var ground = this.entities.createEntity();
 
@@ -801,7 +862,8 @@ EntityFactory = Class({
       EntityFactory.COLLISION_TYPES.player |
       EntityFactory.COLLISION_TYPES.enemy |
       EntityFactory.COLLISION_TYPES.playerBullet |
-      EntityFactory.COLLISION_TYPES.enemyBullet);
+      EntityFactory.COLLISION_TYPES.enemyBullet |
+      EntityFactory.COLLISION_TYPES.pickup);
 
     ground.drawable.scene.add(ground.drawable.mesh);
   }
@@ -822,7 +884,9 @@ EntityFactory = Class({
       enemy: 1 << 3,
 
       playerBullet: 1 << 4,
-      enemyBullet: 1 << 5
+      enemyBullet: 1 << 5,
+
+      pickup: 1 << 6
     },
 
     MOVE_SPEED: {

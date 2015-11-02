@@ -68,7 +68,8 @@ function init() {
       "models/potato.json",
       "models/potatoCannon.json",
       "models/character.json",
-      "models/fry.json"
+      "models/fry.json",
+      "models/pickupBox.json"
     ],
     soundsToPreload: [
       "sfx/arrowlessBow.mp3",
