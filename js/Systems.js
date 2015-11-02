@@ -311,7 +311,7 @@ HurtSystem = Class({
 
         entity.removeComponent(C.Hurt);
 
-        if (entity.hasTag("player")) {
+        if (entity.hasTag("player") && entity.shield.enabled === false) {
           Globals.instance.overlayElement.style.visibility = "hidden";
         }
       }
@@ -350,7 +350,7 @@ ShieldSystem = Class({
           }
         }
 
-        if (entity.hasTag("player")) {
+        if (entity.hasTag("player") && entity.hasComponent(C.Hurt) === false) {
           Globals.instance.overlayElement.style.visibility = "hidden";
         }
       }

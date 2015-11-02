@@ -202,7 +202,7 @@ Game = Class({
       controlsObject: this.controls.getObject(),
       cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
       gunOffset: new THREE.Vector3(9, 8, 0),
-      hp: 20
+      hp: 30
     });
 
     /* Setup Systems */

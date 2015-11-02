@@ -257,7 +257,7 @@ EntityFactory = Class({
       var parentRotation = new THREE.Quaternion().setFromEuler(tick.target.drawable.mesh.rotation);
       var targetRotation = new THREE.Quaternion().setFromRotationMatrix(lookAtMatrix);
 
-      var str = Math.min(Globals.instance.dt / 2, 0.5);
+      var str = Math.min(Globals.instance.dt, 0.5);
 
       parentRotation.slerp(targetRotation, str);
 
