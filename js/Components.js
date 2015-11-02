@@ -1,3 +1,7 @@
+/*
+ * Exports all known components for easier use in modules that require the use of components
+ */
+
 module.exports = {
   Identifier: require('./components/Identifier.js'),
   Position: require('./components/Position.js'),

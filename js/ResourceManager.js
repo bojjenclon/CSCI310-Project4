@@ -12,6 +12,9 @@ Model = Class({
   }
 });
 
+/*
+ * Helper singleton class used to manage resources. Handles the loading and use of 3D models and 2D textures.
+ */
 ResourceManager = Class({
   constructor: function() {
     this.loadingManager = new THREE.LoadingManager();

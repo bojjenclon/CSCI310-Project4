@@ -1,6 +1,9 @@
 // http://www.html5rocks.com/en/tutorials/webaudio/intro/
 // http://www.html5rocks.com/en/tutorials/webaudio/positional_audio/
 
+/*
+ * This class contains data and methods needed to play a 3D positioned sound.
+ */
 Sound = Class({
   constructor: function(options) {
     this.context = options.context;
@@ -58,6 +61,9 @@ Sound = Class({
   }
 });
 
+/*
+ * Helper class used to manage audio resources. Handles the loading and playing of sounds in 3D space.
+ */
 SoundController = Class({
   constructor: function(options) {
     this.context = options.context;

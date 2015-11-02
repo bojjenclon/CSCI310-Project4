@@ -3,6 +3,12 @@ var THREEx = require('./threex.rendererstats.js');
 var Utils = require('./Utils.js');
 var C = require('./Components.js');
 
+/*
+ * The main game class. Contains information that should be stored across the entire game-state.
+ * Required parameters:
+ *  - The DOM elements for the game container, the loading display, the blocker element, and the instructions element
+ *  - The models, sounds, and textures that should be preloaded 
+ */
 Game = Class({
   constructor: function(options) {
     this.container = options.container;
@@ -39,11 +45,7 @@ Game = Class({
     this.systemsDelay = 0;
   },
 
-  start: function(runImmediately) {
-    if (runImmediately === undefined || runImmediately === null) {
-      runImmediately = true;
-    }
-
+  start: function() {
     window.addEventListener('resize', this.onResize.bind(this));
     window.onkeydown = this.onKeyDown.bind(this); // prevent spacebar from scrolling the page
     window.addEventListener('mousedown', this.onMouseDown.bind(this));

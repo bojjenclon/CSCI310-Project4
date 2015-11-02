@@ -1,3 +1,9 @@
+/*
+ * Static methods that are used by pickup entities.
+ * Abstracting the code out into static methods simplifies the creation of new pickups.
+ * Each method takes in the pickup entity calling it. This entity should contain a pickup component, which itself
+ * contains a dictionary of parameters needed by the method.
+ */
 var PickupMethods = PickupMethods || {};
 
 PickupMethods.heal = function(pickup) {

@@ -1,3 +1,6 @@
+/*
+ * Helper singleton class that manages details of the mouse's state.
+ */
 MouseController = Class({
   constructor: function() {
     this.isDown = {

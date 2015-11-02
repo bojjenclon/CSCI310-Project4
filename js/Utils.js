@@ -1,3 +1,6 @@
+/*
+ * Static helper functions that are used frequently throughout the game.
+ */
 var Utils = Utils || {};
 
 Utils.randomRange = function(min, max) {

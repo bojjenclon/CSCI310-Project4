@@ -22,7 +22,7 @@ require('./js/SoundController.js');
 Physijs.scripts.worker = './libs/physijsWorker.js';
 Physijs.scripts.ammo = './ammo.js';
 
-// purpose: function as a basic FPS game using an ECS (entity-component system) pattern
+// purpose: function as a basic FPS game using an ECS (entity-component system) pattern and behavior trees for AI
 //
 // requires: RequestAnimationFrame.js, three.js, three-pointerlockcontrols.js, stats.js, js-class.js, physijs, tiny-ecs, Hamster.js
 //           ./js/*, /js/components/*

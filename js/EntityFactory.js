@@ -4,11 +4,20 @@ var Utils = require('./Utils.js');
 var C = require('./Components.js');
 var PickupMethods = require('./PickupMethods.js');
 
+/*
+ * Helper singleton class for quickly constructing entities. Most functions take in a key-value list of options.
+ * Each function adds necessary components to the relevant entity and sets up said components properties.
+ */
 EntityFactory = Class({
   constructor: function() {
     this.entities = new EntityManager();
   },
 
+  /*
+   * Creates the player entity. There should only ever be one of these at any given time.
+   * Requires a position, scene, and pointerlock objects to be passed in.
+   * Optional parameters include starting max health.
+   */
   makePlayer: function(options) {
     var player = this.entities.createEntity();
 
@@ -129,6 +138,11 @@ EntityFactory = Class({
     return player;
   },
 
+  /*
+   * Creates an enemy entity. The enemy's AI is also setup in this function.
+   * Requires a position, scene, a bullet speed/velocity, an AI target, a maxmimum shooting distance, and a maximum following leash distance.
+   * Optional parameters include starting max health and the enemy's initial rotation.
+   */
   makeEnemy: function(options) {
     var enemy = this.entities.createEntity();
 
@@ -467,6 +481,11 @@ EntityFactory = Class({
     return enemy;
   },
 
+  /*
+   * Creates a gun entity. Gun's are meant to be "attached" to an existing entity.
+   * Requires a position and a parent.
+   * Optional parameters include a pointerlock controls object to make the gun follow the camera's pitch.
+   */
   makeGun: function(options) {
     var gun = this.entities.createEntity();
 
@@ -496,6 +515,11 @@ EntityFactory = Class({
     return gun;
   },
 
+  /*
+   * Creates a potato entity. Potatoes are a form of bullet.
+   * Requires an owner (generally enemy or player), a position, a scene, and a velocity.
+   * Optional parameters include the potato's rotation and scale.
+   */
   makePotato: function(options) {
     var potato = this.entities.createEntity();
 
@@ -546,7 +570,9 @@ EntityFactory = Class({
       EntityFactory.COLLISION_TYPES.enemyBullet);
 
     potato.drawable.mesh.position.copy(options.position);
-    potato.drawable.mesh.rotation.copy(options.rotation);
+    if (options.rotation) {
+      potato.drawable.mesh.rotation.copy(options.rotation);
+    }
     if (options.scale) {
       potato.drawable.mesh.scale.copy(options.scale);
     }
@@ -648,6 +674,11 @@ EntityFactory = Class({
     return potato;
   },
 
+  /*
+   * Creates a fry entity. Fries are a form of bullet.
+   * Requires an owner (generally enemy or player), a position, a scene, and a velocity.
+   * Optional parameters include the fry's rotation and scale.
+   */
   makeFry: function(options) {
     var fry = this.entities.createEntity();
 
@@ -695,7 +726,9 @@ EntityFactory = Class({
       EntityFactory.COLLISION_TYPES.enemyBullet);
 
     fry.drawable.mesh.position.copy(options.position);
-    fry.drawable.mesh.rotation.copy(options.rotation);
+    if (options.rotation) {
+      fry.drawable.mesh.rotation.copy(options.rotation);
+    }
     if (options.scale) {
       fry.drawable.mesh.scale.copy(options.scale);
     }
@@ -782,6 +815,10 @@ EntityFactory = Class({
     return fry;
   },
 
+  /*
+   * Creates a heatlh pickup entity.
+   * Requires a scene and a position.
+   */
   makeHealthPickup: function(options) {
     var pickup = this.entities.createEntity();
 
@@ -841,6 +878,10 @@ EntityFactory = Class({
     };
   },
 
+  /*
+   * Creates an ammo pickup entity.
+   * Requires a scene and a position.
+   */
   makeAmmoPickup: function(options) {
     var pickup = this.entities.createEntity();
 
@@ -903,6 +944,10 @@ EntityFactory = Class({
     };
   },
 
+  /*
+   * Creates a ground pickup entity. There generally will only be one of these in the scene.
+   * Requires a scene, a position, a width, and a height.
+   */
   makeGround: function(options) {
     var ground = this.entities.createEntity();
 
