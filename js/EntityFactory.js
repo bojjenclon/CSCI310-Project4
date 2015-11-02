@@ -110,10 +110,10 @@ EntityFactory = Class({
     player.gun.type = Game.GUN_TYPES.potatoCannon;
 
     player.ammo.currentAmmo[Game.GUN_TYPES.potatoCannon] = 54;
-    player.ammo.currentAmmo[Game.GUN_TYPES.scatterFries] = 160;
+    player.ammo.currentAmmo[Game.GUN_TYPES.scatterFries] = 76;
 
     player.ammo.maxAmmo[Game.GUN_TYPES.potatoCannon] = 54;
-    player.ammo.maxAmmo[Game.GUN_TYPES.scatterFries] = 160;
+    player.ammo.maxAmmo[Game.GUN_TYPES.scatterFries] = 76;
 
     Globals.instance.ammoElement.innerHTML = (player.ammo.currentAmmo[player.gun.type] + ' / ' + player.ammo.maxAmmo[player.gun.type]);
     Globals.instance.weaponNameElement.innerHTML = Game.GUN_NAMES[player.gun.type];
@@ -549,7 +549,7 @@ EntityFactory = Class({
       var hitPlayer = potato.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
       var hitEnemy = potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
-      if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+      if ((hitPlayer || hitEnemy) && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
         if (other_object.entity.hasComponent(C.Shield) && other_object.entity.shield.enabled && other_object.entity.shield.currentValue >= 5) {
           Utils.damageShield(other_object.entity, 5);
         }
@@ -698,11 +698,11 @@ EntityFactory = Class({
       var hitPlayer = fry.bullet.owner === 'enemy' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.player;
       var hitEnemy = fry.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
-      if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
+      if ((hitPlayer || hitEnemy) && fry.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
         other_object.entity.addComponent(C.Hurt);
         other_object.entity.hurt.originalColor = other_object.material.color.clone();
 
-        other_object.entity.health.hp -= 2;
+        other_object.entity.health.hp -= 1;
         other_object.entity.health.changed = true;
 
         fry.oneTimeHit.alreadyHit.push(other_object.uuid);

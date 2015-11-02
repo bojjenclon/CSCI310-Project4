@@ -298,7 +298,7 @@ HurtSystem = Class({
     hurtables.forEach(function(entity) {
       entity.hurt.timer += dt;
 
-      if (entity.hurt.timer < entity.hurt.invulnerabilityFrames) {
+      if (entity.hurt.timer < entity.hurt.timerThreshold) {
         entity.drawable.mesh.material.color = entity.hurt.hurtColor;
 
         if (entity.hasTag("player")) {
