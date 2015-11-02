@@ -297,9 +297,15 @@ Game = Class({
 
       if (Globals.instance.currentWave > Game.TOTAL_WAVES) {
         Globals.instance.waveElement.innerHTML = 'Victory!';
+
+        document.exitPointerLock();
+
+        setTimeout(function() {
+          document.location.href = 'victory.php?score=' + Globals.instance.score;
+        }, 100);
       }
       else {
-        this.createNextWave(Globals.instance.currentWave * 3);
+        this.createNextWave(Globals.instance.currentWave * 2);
 
         Globals.instance.waveElement.innerHTML = Globals.instance.currentWave + ' / ' + Game.TOTAL_WAVES;
       }
@@ -493,6 +499,10 @@ Game = Class({
 
       var element = document.body;
 
+      document.exitPointerLock = document.exitPointerLock ||
+        document.mozExitPointerLock ||
+        document.webkitExitPointerLock;
+
       var pointerlockchange = function(event) {
 
         if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
@@ -511,6 +521,7 @@ Game = Class({
         }
         else {
 
+          this.controlsEnabled = false;
           this.controls.enabled = false;
 
           this.blocker.style.display = '-webkit-box';
