@@ -1,6 +1,7 @@
 var Stats = require('stats.js');
 var THREEx = require('./threex.rendererstats.js');
 var Utils = require('./Utils.js');
+var C = require('./Components.js');
 
 Game = Class({
   constructor: function(options) {
@@ -82,7 +83,7 @@ Game = Class({
 
     // Put in a camera
     var aspectRatio = window.innerWidth / window.innerHeight;
-    this.camera = new THREE.PerspectiveCamera(45, aspectRatio, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(45, aspectRatio, 0.1, 4000);
     this.scene.add(this.camera);
 
     /* Camera Controller */
@@ -320,6 +321,97 @@ Game = Class({
     }
   },
 
+  restartGame: function() {
+    this.player = null;
+
+    var entities = EntityFactory.instance.entities;
+
+    var drawables = entities.queryComponents([C.Drawable]);
+    drawables.forEach(function(entity) {
+      var geometry, material;
+
+      if (entity.hasComponent(C.Health) && entity.health.healthBar) {
+        geometry = entity.health.healthBar.geometry;
+        material = entity.health.healthBar.material;
+
+        entity.drawable.mesh.remove(entity.health.healthBar);
+
+        geometry.dispose();
+
+        if (material.materials) {
+          material.materials.forEach(function(mat) {
+            mat.dispose();
+          });
+        }
+
+        if (material.dispose) {
+          material.dispose();
+        }
+      }
+
+      if (entity.hasComponent(C.Steaming)) {
+        geometry = entity.steaming.particles;
+        material = entity.steaming.system.material;
+
+        entity.drawable.mesh.remove(entity.steaming.container);
+
+        geometry.dispose();
+
+        if (material.materials) {
+          material.materials.forEach(function(mat) {
+            mat.dispose();
+          });
+        }
+
+        if (material.dispose) {
+          material.dispose();
+        }
+      }
+
+      geometry = entity.drawable.mesh.geometry;
+      material = entity.drawable.mesh.material;
+
+      entity.drawable.scene.remove(entity.drawable.mesh);
+
+      geometry.dispose();
+
+      if (material.materials) {
+        material.materials.forEach(function(mat) {
+          mat.dispose();
+        });
+      }
+
+      if (material.dispose) {
+        material.dispose();
+      }
+    });
+
+    entities.removeAllEntities();
+
+    Globals.instance.reloadImg.pause();
+    Globals.instance.reloadingElement.style.visibility = "hidden";
+
+    EntityFactory.instance.makeGround({
+      scene: this.scene,
+      width: 2000,
+      height: 2000
+    });
+
+    this.player = EntityFactory.instance.makePlayer({
+      scene: this.scene,
+      position: new THREE.Vector3(0, 30, 0),
+      controls: this.controls,
+      controlsObject: this.controls.getObject(),
+      cameraOffset: new THREE.Vector3(0, 10, 0), // 10, 10, 25
+      gunOffset: new THREE.Vector3(9, 8, 0),
+      hp: 30
+    });
+
+    Globals.instance.currentWave = 0;
+
+    this.waveCheck();
+  },
+
   onResize: function(e) {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -329,6 +421,10 @@ Game = Class({
 
   onKeyDown: function(e) {
     var keyCode = ('which' in event) ? event.which : event.keyCode;
+
+    if (keyCode === Game.KEY_CODES.enter) {
+      this.restartGame();
+    }
 
     return (keyCode !== Game.KEY_CODES.space);
   },
@@ -495,7 +591,8 @@ Game = Class({
 }, {
   statics: {
     KEY_CODES: {
-      space: 32
+      space: 32,
+      enter: 13
     },
 
     GUN_TYPES: {

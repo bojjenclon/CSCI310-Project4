@@ -470,8 +470,11 @@ EntityFactory = Class({
   makeGun: function(options) {
     var gun = this.entities.createEntity();
 
+    gun.addComponent(C.Identifier);
     gun.addComponent(C.Position);
     gun.addComponent(C.Drawable);
+
+    gun.identifier.type = Globals.ENTITY_TYPES.gun;
 
     var model = ResourceManager.instance.getModel('models/potatoCannon.json').clone();
 
