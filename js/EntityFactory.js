@@ -60,11 +60,16 @@ EntityFactory = Class({
       }
 
       if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy && player.hasComponent(C.Hurt) === false) {
-        player.addComponent(C.Hurt);
-        player.hurt.originalColor = player.drawable.mesh.material.color;
+        if (other_object.entity.hasComponent(C.Shield) && player.shield.enabled && other_object.player.currentValue >= 1) {
+          Utils.damageShield(player, 1);
+        }
+        else {
+          player.addComponent(C.Hurt);
+          player.hurt.originalColor = player.drawable.mesh.material.color;
 
-        player.health.hp--;
-        player.health.changed = true;
+          player.health.hp--;
+          player.health.changed = true;
+        }
       }
       else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.bullet && other_object.entity.bullet.owner === 'enemy' && player.shield.enabled === false) {
         var hitSounds = [
@@ -214,6 +219,7 @@ EntityFactory = Class({
     enemy.shootDelay.delayTheshold = 1.5;
 
     enemy.dropsPickup.dropTypes = ["Health", "Ammo"];
+    enemy.dropsPickup.dropChance = 0.6;
 
     options.bulletSpeed = THREE.Math.clamp(options.bulletSpeed, EntityFactory.MIN_BULLET_SPEED.enemy, EntityFactory.MAX_BULLET_SPEED.enemy);
     options.shootDistance = Math.max(options.shootDistance, options.leashDistance);
@@ -707,7 +713,7 @@ EntityFactory = Class({
         other_object.entity.addComponent(C.Hurt);
         other_object.entity.hurt.originalColor = other_object.material.color.clone();
 
-        other_object.entity.health.hp -= 1;
+        other_object.entity.health.hp -= 2.5;
         other_object.entity.health.changed = true;
 
         fry.oneTimeHit.alreadyHit.push(other_object.uuid);

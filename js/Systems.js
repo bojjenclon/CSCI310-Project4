@@ -371,6 +371,8 @@ PlayerHealthSystem = Class({
         return;
       }
 
+      entity.health.hp = THREE.Math.clamp(entity.health.hp, 0, entity.health.maxHP);
+
       var percent = entity.health.hp / entity.health.maxHP;
       var percentRounded = Math.round(percent * 100);
 
