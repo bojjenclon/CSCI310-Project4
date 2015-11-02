@@ -15,6 +15,7 @@ module.exports = {
   Steaming: require('./components/Steaming.js'),
   CameraPitch: require('./components/CameraPitch.js'),
   Gun: require('./components/Gun.js'),
-  Ammo: require('./components/Ammo.js')
+  Ammo: require('./components/Ammo.js'),
+  Shield: require('./components/Shield.js')
 };
 

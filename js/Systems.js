@@ -44,8 +44,18 @@ PlayerInputSystem = Class({
       entity.velocity.y = velocity.y;
       entity.velocity.z = velocity.z;
 
-      if (entity.shootDelay.canShoot) {
-        if (MouseController.instance.wasPressed.left) {
+      if (MouseController.instance.isDown.right) {
+        if (entity.shield.currentValue > 0) {
+          entity.shield.enabled = true;
+        }
+      }
+      else if (MouseController.instance.wasPressed.right) {
+        entity.shield.timer = 0;
+        entity.shield.enabled = false;
+      }
+
+      if (MouseController.instance.wasPressed.left) {
+        if (entity.shootDelay.canShoot && entity.shield.enabled === false) {
           if (entity.gun.type === Game.GUN_TYPES.potatoCannon && entity.ammo.currentAmmo[Game.GUN_TYPES.potatoCannon] > 0) {
             var direction = new THREE.Vector3();
             entity.cameraFollow.controls.getDirection(direction);
@@ -309,12 +319,48 @@ HurtSystem = Class({
   }
 });
 
+ShieldSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var shieldables = this.entities.queryComponents([C.Shield, C.Drawable]);
+
+    shieldables.forEach(function(entity) {
+      if (entity.shield.enabled) {
+        if (entity.hasTag("player")) {
+          Globals.instance.overlayElement.style.backgroundColor = "#0000cc";
+          Globals.instance.overlayElement.style.visibility = "visible";
+        }
+      }
+      else {
+        if (entity.shield.currentValue < entity.shield.maxValue) {
+          if (entity.shield.timer < entity.shield.rechargeDelay) {
+            entity.shield.timer += dt;
+          }
+          else {
+            entity.shield.currentValue += entity.shield.rechargeRate;
+
+            if (entity.shield.currentValue > entity.shield.maxValue) {
+              entity.shield.currentValue = entity.shield.maxValue;
+            }
+
+            entity.shield.changed = true;
+          }
+        }
+
+        if (entity.hasTag("player")) {
+          Globals.instance.overlayElement.style.visibility = "hidden";
+        }
+      }
+    });
+  }
+});
+
 PlayerHealthSystem = Class({
   constructor: function(entities) {
     this.entities = entities;
-
-    this.keyboard = new THREEx.KeyboardState();
-    this.jumped = false;
   },
 
   update: function(dt) {
@@ -337,6 +383,35 @@ PlayerHealthSystem = Class({
       if (entity.health.hp <= 0) {
         Globals.instance.playerAlive = false;
       }
+
+      entity.health.changed = false;
+    });
+  }
+});
+
+PlayerShieldSystem = Class({
+  constructor: function(entities) {
+    this.entities = entities;
+  },
+
+  update: function(dt) {
+    var players = this.entities.queryTag("player");
+
+    players.forEach(function(entity) {
+      if (entity.shield.changed === false) {
+        return;
+      }
+
+      var percent = entity.shield.currentValue / entity.shield.maxValue;
+      var percentRounded = Math.round(percent * 100);
+
+      var shieldElement = Globals.instance.shieldElement;
+      var color = new THREE.Color(1 - percent, 0, percent);
+
+      shieldElement.innerHTML = percentRounded + "%";
+      shieldElement.style.color = "#" + color.getHexString();
+
+      entity.shield.changed = false;
     });
   }
 });

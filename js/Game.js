@@ -214,7 +214,9 @@ Game = Class({
     this.systems.push(new CameraPitchSystem(EntityFactory.instance.entities));
     this.systems.push(new ShootDelaySystem(EntityFactory.instance.entities));
     this.systems.push(new HurtSystem(EntityFactory.instance.entities));
+    this.systems.push(new ShieldSystem(EntityFactory.instance.entities));
     this.systems.push(new PlayerHealthSystem(EntityFactory.instance.entities));
+    this.systems.push(new PlayerShieldSystem(EntityFactory.instance.entities));
     this.systems.push(new HealthBarSystem(EntityFactory.instance.entities));
     this.systems.push(new DeathSystem(EntityFactory.instance.entities));
     this.systems.push(new SteamRemovalSystem(EntityFactory.instance.entities));

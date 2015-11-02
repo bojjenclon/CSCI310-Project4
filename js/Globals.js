@@ -6,7 +6,7 @@ Globals = Class({
     this.hudElement = null;
 
     this.healthElement = null;
-
+    this.shieldElement = null;
     this.ammoElement = null;
 
     this.scoreElement = null;

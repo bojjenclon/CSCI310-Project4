@@ -23,6 +23,7 @@ EntityFactory = Class({
     player.addComponent(C.Health);
     player.addComponent(C.Gun);
     player.addComponent(C.Ammo);
+    player.addComponent(C.Shield);
 
     player.identifier.type = Globals.ENTITY_TYPES.player;
 
@@ -547,13 +548,18 @@ EntityFactory = Class({
       var hitEnemy = potato.bullet.owner === 'player' && other_object.entity.identifier.type === Globals.ENTITY_TYPES.enemy;
 
       if ((hitPlayer || hitEnemy) && other_object.entity.hasComponent(C.Hurt) === false && potato.oneTimeHit.alreadyHit.indexOf(other_object.uuid) < 0) {
-        other_object.entity.addComponent(C.Hurt);
-        other_object.entity.hurt.originalColor = other_object.material.color.clone();
+        if (other_object.entity.hasComponent(C.Shield) && other_object.entity.shield.enabled && other_object.entity.shield.currentValue >= 5) {
+          Utils.damageShield(other_object.entity, 5);
+        }
+        else {
+          other_object.entity.addComponent(C.Hurt);
+          other_object.entity.hurt.originalColor = other_object.material.color.clone();
 
-        other_object.entity.health.hp -= 5;
-        other_object.entity.health.changed = true;
+          other_object.entity.health.hp -= 5;
+          other_object.entity.health.changed = true;
 
-        potato.oneTimeHit.alreadyHit.push(other_object.uuid);
+          potato.oneTimeHit.alreadyHit.push(other_object.uuid);
+        }
       }
       else if (other_object.entity.identifier.type === Globals.ENTITY_TYPES.ground) {
         potato.bullet.touchedGround = true;

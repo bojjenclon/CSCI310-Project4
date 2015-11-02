@@ -40,7 +40,9 @@ function init() {
   Globals.instance.hudRightElement = document.getElementById("hudRight");
 
   Globals.instance.healthElement = document.getElementById("health");
+  Globals.instance.shieldElement = document.getElementById("shield");
   Globals.instance.ammoElement = document.getElementById("ammo");
+
   Globals.instance.scoreElement = document.getElementById("score");
 
   Globals.instance.reloadingElement = document.getElementById("reloading");
