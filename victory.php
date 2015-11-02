@@ -20,7 +20,7 @@
       <div class="small-12 columns text-center">
         <h1>
           <?php
-            $score = $_GET['score'];
+            $score = isset($_GET['score']) ? $_GET['score'] : 0;
             $insult = $score <= 315;
 
             if ($score < 300) {
