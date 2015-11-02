@@ -110,12 +110,14 @@ EntityFactory = Class({
     player.gun.type = Game.GUN_TYPES.potatoCannon;
 
     player.ammo.currentAmmo[Game.GUN_TYPES.potatoCannon] = 54;
-    player.ammo.currentAmmo[Game.GUN_TYPES.scatterFries] = 72;
+    player.ammo.currentAmmo[Game.GUN_TYPES.scatterFries] = 160;
 
     player.ammo.maxAmmo[Game.GUN_TYPES.potatoCannon] = 54;
-    player.ammo.maxAmmo[Game.GUN_TYPES.scatterFries] = 72;
+    player.ammo.maxAmmo[Game.GUN_TYPES.scatterFries] = 160;
 
     Globals.instance.ammoElement.innerHTML = (player.ammo.currentAmmo[player.gun.type] + ' / ' + player.ammo.maxAmmo[player.gun.type]);
+    Globals.instance.weaponNameElement.innerHTML = Game.GUN_NAMES[player.gun.type];
+    Globals.instance.weaponIconElement.src = Game.GUN_ICONS[player.gun.type];
 
     return player;
   },

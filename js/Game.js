@@ -512,7 +512,7 @@ Game = Class({
 
     GUN_NAMES: {
       0: 'Fisticuffs',
-      1: 'Potato Cannon',
+      1: 'T.A.T.E.R',
       2: 'Scatter Fries'
     },
 
